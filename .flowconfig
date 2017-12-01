@@ -1,0 +1,23 @@
+[include]
+src/**/*
+
+
+[ignore]
+.*/build/.*
+.*/config/.*
+.*/dist/.*
+.*/node_modules/**
+.*/static/.*
+.*/test/.*
+.*/ssl/.*
+.*/.nuxt/.*
+
+[libs]
+./flow/
+
+[options]
+module.file_ext=.vue
+module.file_ext=.js
+suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
+unsafe.enable_getters_and_setters=true
+module.name_mapper='^@' ->'<PROJECT_ROOT>/src'

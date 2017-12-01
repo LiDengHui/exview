@@ -1,0 +1,77 @@
+{
+  "user": [
+    {
+      "name": "lidenghui9",
+      "sex": 1,
+      "phone": "13201656689",
+      "email": "3379489039@qq.com",
+      "id": 1
+    },
+    {
+      "name": "lidenghui9",
+      "sex": 1,
+      "phone": "13201656689",
+      "email": "3379489039@qq.com",
+      "id": 2
+    },
+    {
+      "name": "lidenghui9",
+      "sex": 1,
+      "phone": "13201656689",
+      "email": "3379489039@qq.com",
+      "id": 3
+    },
+    {
+      "name": "lidenghui9",
+      "sex": 1,
+      "phone": "13201656689",
+      "email": "3379489039@qq.com",
+      "id": 4
+    },
+    {
+      "name": "lidenghui9",
+      "sex": 1,
+      "phone": "13201656689",
+      "email": "3379489039@qq.com",
+      "id": 5
+    },
+    {
+      "name": "lidenghui9",
+      "sex": 2,
+      "phone": "13201656689",
+      "email": "3379489039@qq.com",
+      "id": 6
+    },
+    {
+      "name": "lidenghui9",
+      "sex": 2,
+      "phone": "13201656689",
+      "email": "3379489039@qq.com",
+      "id": 7
+    },
+    {
+      "name": "lidenghui8",
+      "sex": 1,
+      "phone": "13201656688",
+      "email": "3379489038@qq.com",
+      "id": 11
+    }
+  ],
+  "posts": [
+    {
+      "id": 1,
+      "title": "json-server",
+      "author": "typicode"
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "body": "some comment",
+      "postId": 1
+    }
+  ],
+  "profile": {
+    "name": "typicode"
+  }
+}

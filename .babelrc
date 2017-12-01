@@ -1,0 +1,25 @@
+{
+    "presets": [
+        [
+            "env",
+            {
+                "modules": false
+            }
+        ],
+        "stage-2",
+        "flow"
+    ],
+    "plugins": [
+        "transform-runtime",
+        "babel-plugin-transform-class-properties",
+        "babel-plugin-syntax-flow",
+        "babel-plugin-transform-flow-strip-types",
+        "babel-plugin-root-import"
+    ],
+    "env": {
+        "test": {
+            "presets": ["env", "stage-2"],
+            "plugins": ["istanbul"]
+        }
+    }
+}
