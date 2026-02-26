@@ -48,3 +48,13 @@
 - 动作：增加 `vitest.setup.ts`，在测试环境注册 Element Plus
 - 结果：测试通过且消除组件未注册警告
 - 下一步：进入 Batch C，补充分包/性能优化与迁移清单
+
+### [21:42] Step 9 - Batch C: 构建分包与性能优化
+- 动作：路由改为懒加载；Vite 增加 `manualChunks`（vue / element-plus）
+- 结果：降低首屏主包体积，构建产物拆分更合理
+- 下一步：补充关键逻辑测试，完善迁移差异清单
+
+### [21:42] Step 10 - Batch C: 增加关键测试
+- 动作：新增 `apps/web/src/mock/users.spec.ts`，覆盖新增/删除核心流程
+- 结果：业务 mock 层关键操作可回归验证
+- 下一步：执行完整构建+测试回归并更新计划
