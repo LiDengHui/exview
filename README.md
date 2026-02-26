@@ -51,3 +51,11 @@ pnpm -r test
 
 - 旧版 Vue2/webpack 目录与配置已移除（`build/`, `config/`, `src/`, `test/` 等）。
 - 当前仅保留现代化工程结构（`apps/web`）与迁移文档（`docs/*`）。
+
+
+## 环境变量
+
+复制 `apps/web/.env.example` 为 `apps/web/.env` 后可切换 mock/real API：
+
+- `VITE_USE_MOCK=true`：使用本地 mock
+- `VITE_USE_MOCK=false`：走真实后端（需配置 `VITE_API_BASE_URL`）

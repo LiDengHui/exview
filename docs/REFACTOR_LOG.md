@@ -124,3 +124,10 @@
 - 结果：e2e 用例总数提升到 3 条并全部通过
 - 回归：unit/e2e/build 全通过
 - 下一步：整理最终里程碑状态并持续 5 分钟汇报
+
+### [22:49] Step 22 - 真实 API 接入能力与 CI 落地
+- 动作：新增 `http.ts` 与增强版 `userService.ts`，支持 mock/real API 切换
+- 动作：新增 `apps/web/.env.example`，明确环境变量约定
+- 动作：新增 `.github/workflows/web-ci.yml`，自动执行 install/test/build
+- 结果：项目从“本地可跑”升级为“具备联调入口 + 基础 CI 保障”
+- 下一步：补充 API 异常分支测试与 UI 错误态
