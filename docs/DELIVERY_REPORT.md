@@ -49,3 +49,10 @@ pnpm -r build
 - [x] 旧工程已清理
 - [ ] 接入真实后端环境变量与联调
 - [ ] 部署环境验收
+
+
+## 6. CI 说明
+
+- `web` job：安装依赖 + unit test + build
+- `web-e2e` job：安装浏览器 + e2e 冒烟
+- 触发时机：push / pull request

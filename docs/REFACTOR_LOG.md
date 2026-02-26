@@ -137,3 +137,9 @@
 - 动作：FormView 增加提交失败提示；TableView 增加列表加载/删除容错
 - 结果：接口异常时页面行为更稳定，用户可见错误反馈
 - 下一步：补充 CI 中 e2e 任务与最终封版说明
+
+### [23:30] Step 24 - CI 增强（纳入 E2E）
+- 动作：将 GitHub Actions 拆分为 `web` 与 `web-e2e` 两个 job
+- 动作：e2e job 增加 Playwright Chromium 安装步骤
+- 结果：CI 可自动覆盖 unit/build/e2e 三层校验
+- 下一步：更新交付报告中的 CI 章节并继续监控优化项
