@@ -31,3 +31,9 @@
 - 结果：新工程可独立作为现代化入口；组件库选型为 Element Plus
 - 下一步：安装依赖并验证 `dev/build/test`
 
+
+### [21:41] Step 6 - 安装/启动/构建/测试验证
+- 动作：执行 `pnpm install`、`pnpm dev`、`pnpm -r build`、`pnpm -r test`
+- 结果：全部通过（构建存在大包体告警，不影响产物生成）
+- 处理：新增 `apps/web/postcss.config.cjs` 规避旧根目录 postcss 配置干扰
+- 下一步：整理迁移说明，并进入 Batch B（业务模块逐步迁移）

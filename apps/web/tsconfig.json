@@ -2,7 +2,16 @@
   "extends": "./tsconfig.node.json",
   "compilerOptions": {
     "composite": true,
-    "types": ["vite/client", "vitest/globals"]
+    "types": [
+      "vite/client",
+      "vitest/globals"
+    ],
+    "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "src/**/*.d.ts", "vitest.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/**/*.d.ts",
+    "vitest.config.ts"
+  ]
 }
