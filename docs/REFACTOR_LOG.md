@@ -99,3 +99,10 @@
 - 结果：工作区显著收敛，减少无关文件污染提交历史
 - 回归：`pnpm --filter @exview/web test`、`pnpm --filter @exview/web test:e2e`、`pnpm -r build` 全通过
 - 下一步：提交清理改动并继续 5 分钟节奏汇报
+
+### [22:34] Step 18 - 开发体验优化（Auto Import）
+- 动作：引入 `unplugin-auto-import` 自动导入 Vue/Router/Pinia API
+- 结果：减少模板样板代码，后续组件开发更快
+- 配套：新增 `apps/web/.gitignore`，忽略自动生成 d.ts 文件
+- 回归：unit/e2e/build 全通过
+- 下一步：继续优化产物体积（图标/样式按需）与 CI 脚本
