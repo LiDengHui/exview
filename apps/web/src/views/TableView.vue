@@ -8,13 +8,21 @@ import { userService } from '../services/userService'
 const rows = ref<UserItem[]>([])
 
 async function refresh() {
-  rows.value = await userService.list()
+  try {
+    rows.value = await userService.list()
+  } catch (error) {
+    rows.value = []
+  }
 }
 
 async function removeRow(id: number) {
-  await ElMessageBox.confirm('确认删除该用户？', '提示')
-  await userService.remove(id)
-  await refresh()
+  try {
+    await ElMessageBox.confirm('确认删除该用户？', '提示')
+    await userService.remove(id)
+    await refresh()
+  } catch (error) {
+    // cancel or request failed
+  }
 }
 
 onMounted(refresh)

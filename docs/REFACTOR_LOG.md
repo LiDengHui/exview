@@ -131,3 +131,9 @@
 - 动作：新增 `.github/workflows/web-ci.yml`，自动执行 install/test/build
 - 结果：项目从“本地可跑”升级为“具备联调入口 + 基础 CI 保障”
 - 下一步：补充 API 异常分支测试与 UI 错误态
+
+### [23:12] Step 23 - API 异常分支与 UI 容错优化
+- 动作：新增 `http.spec.ts` 覆盖 HTTP 非 2xx 异常分支
+- 动作：FormView 增加提交失败提示；TableView 增加列表加载/删除容错
+- 结果：接口异常时页面行为更稳定，用户可见错误反馈
+- 下一步：补充 CI 中 e2e 任务与最终封版说明

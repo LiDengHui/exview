@@ -8,8 +8,12 @@ async function submit(model: { name: string; age: number; phone: string; email: 
     ElMessage.warning('请完整填写信息')
     return
   }
-  await userService.add(model)
-  ElMessage.success('提交成功（mock）')
+  try {
+    await userService.add(model)
+    ElMessage.success('提交成功')
+  } catch (error) {
+    ElMessage.error(`提交失败：${(error as Error).message}`)
+  }
 }
 </script>
 
