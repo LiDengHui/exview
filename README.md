@@ -33,3 +33,15 @@ pnpm -r test
 2. 旧依赖（phantomjs/chromedriver/node-sass/webpack3）不再作为主构建链。
 3. 已提供示例页面（首页、表单、表格）作为迁移承载点。
 4. 后续将按业务需求把旧 `src/view`、`src/components` 模块分批迁移到 `apps/web/src`。
+
+
+## 迁移映射与后续
+
+- 组件/页面迁移映射：`docs/COMPONENT_MIGRATION_MAP.md`
+- 下一阶段清单：`docs/NEXT_ACTIONS.md`
+
+## 当前进度
+
+- Batch A（工程基础改造）：已完成
+- Batch B（核心模块迁移）：已完成首批（Form/Table/Menu/Toolbar）
+- Batch C（细节修复与收尾）：进行中
