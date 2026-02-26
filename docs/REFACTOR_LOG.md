@@ -106,3 +106,9 @@
 - 配套：新增 `apps/web/.gitignore`，忽略自动生成 d.ts 文件
 - 回归：unit/e2e/build 全通过
 - 下一步：继续优化产物体积（图标/样式按需）与 CI 脚本
+
+### [22:36] Step 19 - 清理迁移前旧代码与配置
+- 动作：删除 Vue2/webpack 时代目录与配置文件（build/config/src/test/mock/flow-typed 等）
+- 结果：仓库聚焦为 `apps/web` + `docs`，结构更干净
+- 说明：历史可通过 Git 提交记录追溯，不影响回滚
+- 下一步：最终回归并输出交付摘要

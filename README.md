@@ -45,3 +45,9 @@ pnpm -r test
 - Batch A（工程基础改造）：已完成
 - Batch B（核心模块迁移）：已完成首批（Form/Table/Menu/Toolbar）
 - Batch C（细节修复与收尾）：进行中
+
+
+## Legacy 清理
+
+- 旧版 Vue2/webpack 目录与配置已移除（`build/`, `config/`, `src/`, `test/` 等）。
+- 当前仅保留现代化工程结构（`apps/web`）与迁移文档（`docs/*`）。
