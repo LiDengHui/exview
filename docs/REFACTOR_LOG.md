@@ -26,3 +26,8 @@
 - 结果：执行路线明确，优先做 Batch A（工程底座升级）
 - 下一步：落地 monorepo/workspace 结构与新应用骨架
 
+### [21:39] Step 5 - 落地 pnpm workspace + Vue3/Vite 骨架
+- 动作：创建 `pnpm-workspace.yaml`、根 `package.json`，新增 `apps/web`（Vue3 + Vite + TS）
+- 结果：新工程可独立作为现代化入口；组件库选型为 Element Plus
+- 下一步：安装依赖并验证 `dev/build/test`
+
