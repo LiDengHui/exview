@@ -7,6 +7,8 @@
           <el-menu-item index="/">首页</el-menu-item>
           <el-menu-item index="/form">表单</el-menu-item>
           <el-menu-item index="/table">表格</el-menu-item>
+          <el-menu-item index="/menu">菜单</el-menu-item>
+          <el-menu-item index="/toolbar">工具栏</el-menu-item>
         </el-menu>
       </el-aside>
       <el-main>

@@ -37,3 +37,14 @@
 - 结果：全部通过（构建存在大包体告警，不影响产物生成）
 - 处理：新增 `apps/web/postcss.config.cjs` 规避旧根目录 postcss 配置干扰
 - 下一步：整理迁移说明，并进入 Batch B（业务模块逐步迁移）
+
+### [21:40] Step 7 - 业务模块首批迁移（Form/Table/Menu/Toolbar）
+- 动作：把旧 `src/view` 的主要页面迁移到 `apps/web/src/views`，并使用 Element Plus 重写交互
+- 结果：新增 `MenuView` / `ToolbarView`，`FormView` 与 `TableView` 对齐旧功能意图（使用 mock API）
+- 验证：`pnpm -r build`、`pnpm -r test` 通过
+- 下一步：继续拆分通用组件层（旧 `src/components/*`）并逐步替换
+
+### [21:40] Step 8 - 测试体验优化
+- 动作：增加 `vitest.setup.ts`，在测试环境注册 Element Plus
+- 结果：测试通过且消除组件未注册警告
+- 下一步：进入 Batch C，补充分包/性能优化与迁移清单
