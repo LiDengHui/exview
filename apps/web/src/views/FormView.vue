@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import ExForm from '../components/business/ExForm.vue'
-import { userMockApi } from '../mock/users'
+import { userService } from '../services/userService'
 
 async function submit(model: { name: string; age: number; phone: string; email: string }) {
   if (!model.name || !model.phone || !model.email) {
     ElMessage.warning('请完整填写信息')
     return
   }
-  await userMockApi.add(model)
+  await userService.add(model)
   ElMessage.success('提交成功（mock）')
 }
 </script>

@@ -81,3 +81,15 @@
 - 问题与修复：测试环境遇到 CSS 扩展加载报错，已在 `vitest.config.ts` 使用 `importStyle: false` 解决
 - 验证：`pnpm -r test`、`pnpm -r build` 全通过
 - 下一步：继续推进 service adapter 与 legacy 清理
+
+### [21:56] Step 15 - Service Adapter 化
+- 动作：新增 `apps/web/src/services/userService.ts`，页面调用由 mock 直连切换为 service 层
+- 结果：形成 mock/real 可切换的统一接口，后续接入真实后端成本降低
+- 验证：新增 `userService.spec.ts` 并通过
+- 下一步：补充 e2e 冒烟测试并纳入脚本
+
+### [21:57] Step 16 - E2E 冒烟测试落地
+- 动作：新增 Playwright 配置与 `e2e/smoke.spec.ts`（home/form/table 路由与关键文案校验）
+- 问题与修复：首版通过菜单点击断言不稳定，改为路由直达断言以提升稳定性
+- 结果：`pnpm --filter @exview/web test:e2e` 通过
+- 下一步：整理优化建议并继续压缩包体
