@@ -68,3 +68,9 @@
 - 动作：更新 README 进度状态与文档索引
 - 结果：可直接作为阶段性交付说明
 - 下一步：持续小步迁移并保持 build/test 绿灯
+
+### [21:48] Step 13 - 抽离通用业务组件（ExForm/ExTable）
+- 动作：从页面中抽离 `apps/web/src/components/business/ExForm.vue` 与 `ExTable.vue`
+- 结果：页面层更薄，复用边界清晰，为后续扩展多页面配置能力做准备
+- 验证：`pnpm -r build`、`pnpm -r test` 通过
+- 下一步：继续 service adapter 化并清理 legacy 构建痕迹
