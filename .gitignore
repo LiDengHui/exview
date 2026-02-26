@@ -1,18 +1,22 @@
-.DS_Store
 node_modules/
-/dist/
+.pnpm-store/
+
+# build outputs
+apps/web/dist/
+
+# test artifacts
+apps/web/test-results/
+apps/web/playwright-report/
+
+# generated files
+apps/web/components.d.ts
+apps/web/src/components.d.ts
+apps/web/vitest.config.js
+apps/web/vitest.config.d.ts
+apps/web/tsconfig.tsbuildinfo
+
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-/test/unit/coverage/
-/test/e2e/reports/
-selenium-debug.log
-flow.log
-
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
+pnpm-debug.log*

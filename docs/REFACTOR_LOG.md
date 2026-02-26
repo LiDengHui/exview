@@ -93,3 +93,9 @@
 - 问题与修复：首版通过菜单点击断言不稳定，改为路由直达断言以提升稳定性
 - 结果：`pnpm --filter @exview/web test:e2e` 通过
 - 下一步：整理优化建议并继续压缩包体
+
+### [22:31] Step 17 - 仓库清理与交付前回归
+- 动作：补充 `.gitignore`，清理 dist/test-results/自动生成声明文件与中间产物
+- 结果：工作区显著收敛，减少无关文件污染提交历史
+- 回归：`pnpm --filter @exview/web test`、`pnpm --filter @exview/web test:e2e`、`pnpm -r build` 全通过
+- 下一步：提交清理改动并继续 5 分钟节奏汇报
