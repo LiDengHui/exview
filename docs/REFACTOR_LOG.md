@@ -74,3 +74,10 @@
 - 结果：页面层更薄，复用边界清晰，为后续扩展多页面配置能力做准备
 - 验证：`pnpm -r build`、`pnpm -r test` 通过
 - 下一步：继续 service adapter 化并清理 legacy 构建痕迹
+
+### [21:49] Step 14 - 组件库按需加载优化
+- 动作：引入 `unplugin-vue-components` + `ElementPlusResolver`，从全量注册改为按需自动导入
+- 结果：主包显著下降（不再出现 800KB+ 的单一 element-plus 大包）
+- 问题与修复：测试环境遇到 CSS 扩展加载报错，已在 `vitest.config.ts` 使用 `importStyle: false` 解决
+- 验证：`pnpm -r test`、`pnpm -r build` 全通过
+- 下一步：继续推进 service adapter 与 legacy 清理
