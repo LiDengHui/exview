@@ -5,7 +5,8 @@ export const routes = [
   { path: '/form', component: () => import('../views/FormView.vue') },
   { path: '/table', component: () => import('../views/TableView.vue') },
   { path: '/menu', component: () => import('../views/MenuView.vue') },
-  { path: '/toolbar', component: () => import('../views/ToolbarView.vue') }
+  { path: '/toolbar', component: () => import('../views/ToolbarView.vue') },
+  { path: '/schema-playground', component: () => import('../views/SchemaPlaygroundView.vue') }
 ]
 
 export const router = createRouter({
