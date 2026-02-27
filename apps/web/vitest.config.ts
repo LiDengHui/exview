@@ -1,16 +1,12 @@
 import { defineConfig } from 'vitest/config'
-import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import { resolveWorkspaceAlias } from './config/workspaceAlias'
 
 export default defineConfig({
   resolve: {
-    alias: {
-      '@exview/schema-shared': fileURLToPath(new URL('../../packages/schema-shared/src/index.ts', import.meta.url)),
-      '@exview/schema-form': fileURLToPath(new URL('../../packages/schema-form/src/index.ts', import.meta.url)),
-      '@exview/schema-table': fileURLToPath(new URL('../../packages/schema-table/src/index.ts', import.meta.url))
-    }
+    alias: resolveWorkspaceAlias(import.meta.url)
   },
   plugins: [
     vue(),
