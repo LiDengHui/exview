@@ -36,8 +36,7 @@ const schema: FormSchema = {
       name: 'email',
       option: { placeholder: '邮箱', value: `337948903${random}@qq.com` }
     }
-  ],
-  toolbar: 'submit,reset'
+  ]
 }
 
 function handleSubmit(model: Record<string, unknown>) {

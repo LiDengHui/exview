@@ -104,8 +104,7 @@ const schema = computed<FormSchema>(() => ({
       visible: () => showAdvanced.value,
       defaultValue: { retry: '3', timeout: '5000' }
     }
-  ],
-  toolbar: 'submit,reset'
+  ]
 }))
 
 function onSubmit(values: Record<string, unknown>) {

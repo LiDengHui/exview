@@ -67,7 +67,7 @@ function moveEntry(index: number, direction: -1 | 1) {
   <div class="group-object">
     <template v-if="itemSchema?.length">
       <SchemaForm
-        :schema="{ fields: itemSchema, toolbar: [], onValuesChange: (values) => emit('update:modelValue', values) }"
+        :schema="{ fields: itemSchema, onValuesChange: (values) => emit('update:modelValue', values) }"
         :model="modelValue"
         @submit="() => void 0"
         @reset="() => void 0"

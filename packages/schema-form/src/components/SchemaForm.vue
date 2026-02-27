@@ -20,7 +20,6 @@ const {
   formRef,
   model,
   rules,
-  toolbar,
   loadingOptions,
   preloadOptions,
   getFieldOptions,
@@ -136,6 +135,11 @@ defineExpose({
   isTouched
 })
 
+const toolbarItems: ToolbarAction[] = [
+  { text: '提交', signal: 'submit', type: 'primary', validate: true },
+  { text: '重置', signal: 'reset', type: 'default' }
+]
+
 async function onAction(item: ToolbarAction) {
   if (item.signal === 'reset') {
     reset()
@@ -238,7 +242,7 @@ async function onAction(item: ToolbarAction) {
     </el-row>
 
     <el-form-item>
-      <SchemaToolbar :items="toolbar" @action="onAction" />
+      <SchemaToolbar :items="toolbarItems" @action="onAction" />
     </el-form-item>
 
     <slot name="footer" :model="model" :submit="submit" :reset="resetFields" />

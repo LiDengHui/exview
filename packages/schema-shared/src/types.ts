@@ -80,7 +80,6 @@ export interface ToolbarAction {
 
 export interface FormSchema {
   fields: FormFieldSchema[]
-  toolbar?: string | ToolbarAction[]
   initialValues?: Record<string, unknown>
   persistKey?: string
   persistStorage?: 'local' | 'session'

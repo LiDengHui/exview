@@ -58,8 +58,7 @@ const schema: FormSchema = {
       row: true,
       defaultValue: { level: 'senior', city: 'shanghai' }
     }
-  ],
-  toolbar: 'submit,reset'
+  ]
 }
 
 function onSubmit(model: Record<string, unknown>) {

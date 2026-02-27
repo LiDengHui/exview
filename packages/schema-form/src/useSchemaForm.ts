@@ -1,12 +1,7 @@
 import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { FormFieldSchema, FormSchema, OptionItem, ToolbarAction } from '@exview/schema-shared'
+import type { FormFieldSchema, FormSchema, OptionItem } from '@exview/schema-shared'
 import { getSchemaRule } from './ruleRegistry'
-
-const defaultToolbarMap: Record<string, ToolbarAction> = {
-  submit: { text: '提交', signal: 'submit', type: 'primary', validate: true },
-  reset: { text: '重置', signal: 'reset', type: 'default' }
-}
 
 function normalizeRules(schema: FormSchema): FormRules {
   const rules: FormRules = {}
@@ -27,18 +22,6 @@ function normalizeRules(schema: FormSchema): FormRules {
     }
   })
   return rules
-}
-
-function resolveToolbar(toolbar?: FormSchema['toolbar']): ToolbarAction[] {
-  if (!toolbar) return [defaultToolbarMap.submit, defaultToolbarMap.reset]
-  if (Array.isArray(toolbar)) return toolbar
-
-  return toolbar
-    .split(',')
-    .map((key) => key.trim())
-    .filter(Boolean)
-    .map((key) => defaultToolbarMap[key])
-    .filter(Boolean)
 }
 
 function stableSerialize(value: unknown): string {
@@ -153,7 +136,6 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
     return base
   })
-  const toolbar = computed(() => resolveToolbar(schema.toolbar))
 
   async function applyInputTransform(field: FormFieldSchema, value: unknown, values: Record<string, unknown>) {
     if (!field.transform?.input) return value
@@ -495,7 +477,6 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     formRef,
     model,
     rules,
-    toolbar,
     loadingOptions,
     fieldLoadingMap: loadingOptions,
     fieldErrorMap,

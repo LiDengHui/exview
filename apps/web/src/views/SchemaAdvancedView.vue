@@ -86,8 +86,7 @@ const schema: FormSchema = {
   onValuesChange: () => {
     if (!formRef.value) return
     stateInfo.value = `dirty=${formRef.value.isDirty.value}, touched=${formRef.value.isTouched.value}`
-  },
-  toolbar: 'submit,reset'
+  }
 }
 
 async function showOutput() {

@@ -52,7 +52,6 @@ function moveItem(index: number, direction: -1 | 1) {
           class="nested-form"
           :schema="{
             fields: itemSchema || [],
-            toolbar: [],
             onValuesChange: (values) => updateAt(index, values)
           }"
           :model="(item as Record<string, unknown>)"
