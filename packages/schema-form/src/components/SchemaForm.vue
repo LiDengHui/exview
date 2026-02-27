@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { computed, onMounted } from 'vue'
+import { computed, nextTick, onMounted } from 'vue'
 import { useSchemaForm } from '../useSchemaForm'
 import { resolveSchemaFormComponent } from '../componentRegistry'
 import { migrateFormSchema } from '@exview/schema-shared'
@@ -159,6 +159,11 @@ async function submitForm() {
     return payload
   } catch {
     ElMessage.warning('表单验证失败')
+    await nextTick()
+    const firstInvalid = document.querySelector(
+      '.el-form-item.is-error input, .el-form-item.is-error textarea, .el-form-item.is-error .el-select__wrapper'
+    ) as HTMLElement | null
+    firstInvalid?.focus?.()
     return null
   }
 }
