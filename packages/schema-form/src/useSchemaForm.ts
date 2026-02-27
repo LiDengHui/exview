@@ -36,6 +36,14 @@ function resolveToolbar(toolbar?: FormSchema['toolbar']): ToolbarAction[] {
     .filter(Boolean)
 }
 
+function stableSerialize(value: unknown): string {
+  if (value === null || value === undefined) return String(value)
+  if (typeof value !== 'object') return String(value)
+  if (Array.isArray(value)) return `[${value.map(stableSerialize).join(',')}]`
+  const record = value as Record<string, unknown>
+  return `{${Object.keys(record).sort().map((k) => `${k}:${stableSerialize(record[k])}`).join(',')}}`
+}
+
 export function useSchemaForm(schema: FormSchema, initialModel: Record<string, unknown> = {}) {
   const formRef = ref<FormInstance>()
   const loadingOptions = reactive<Record<string, boolean>>({})
@@ -44,10 +52,17 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   const resolvedFieldProps = reactive<Record<string, Record<string, unknown>>>({})
   const resolvedFieldVisible = reactive<Record<string, boolean>>({})
   const resolvedFieldDisabled = reactive<Record<string, boolean>>({})
+  const fieldDebugMap = reactive<Record<string, string>>({})
   const resolveTokenMap = reactive<Record<string, number>>({})
   const optionsDebounceTimerMap = new Map<string, ReturnType<typeof setTimeout>>()
+  const optionsCacheMap = new Map<string, OptionItem[]>()
 
-  const model = reactive<Record<string, unknown>>({ ...initialModel })
+  const mergedInitialValues = {
+    ...(schema.initialValues || {}),
+    ...initialModel
+  }
+
+  const model = reactive<Record<string, unknown>>({ ...mergedInitialValues })
 
   schema.fields.forEach((field) => {
     if (model[field.name] === undefined) {
@@ -55,10 +70,35 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
       model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
     }
     fieldErrorMap[field.name] = null
+    fieldDebugMap[field.name] = ''
   })
+
+  const initialSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
+  let previousSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
 
   const rules = computed(() => normalizeRules(schema))
   const toolbar = computed(() => resolveToolbar(schema.toolbar))
+
+  function emitChanges(nextValues: Record<string, unknown>) {
+    const changedFields = Object.keys(nextValues).filter((key) => previousSnapshot[key] !== nextValues[key])
+    if (changedFields.length === 0) return
+
+    const firstChanged = changedFields[0]
+    schema.onValuesChange?.({ ...nextValues }, firstChanged)
+    changedFields.forEach((field) => {
+      schema.onFieldChange?.(field, nextValues[field], { ...nextValues })
+    })
+
+    previousSnapshot = { ...nextValues }
+  }
+
+  watch(
+    model,
+    () => {
+      emitChanges(model as Record<string, unknown>)
+    },
+    { deep: true }
+  )
 
   function applyAsync<T>(
     fieldName: string,
@@ -67,6 +107,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     apply: (value: T) => void,
     onFinally?: () => void
   ) {
+    const start = performance.now()
     Promise.resolve(task)
       .then((value) => {
         if (resolveTokenMap[fieldName] !== token) return
@@ -79,6 +120,8 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
       })
       .finally(() => {
         if (resolveTokenMap[fieldName] !== token) return
+        const duration = Math.round(performance.now() - start)
+        fieldDebugMap[fieldName] = `deps=${(schema.fields.find((f) => f.name === fieldName)?.deps || []).join(',') || 'auto'}; cost=${duration}ms`
         onFinally?.()
       })
   }
@@ -87,14 +130,68 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     field: FormFieldSchema,
     token: number,
     loader: (m: Record<string, unknown>) => Promise<OptionItem[]>,
-    currentModel: Record<string, unknown>
+    currentModel: Record<string, unknown>,
+    optionProps?: Record<string, unknown>
   ) {
+    const cacheKeyRaw = optionProps?.optionsCacheKey
+    const cacheKey =
+      typeof cacheKeyRaw === 'function'
+        ? cacheKeyRaw(currentModel)
+        : cacheKeyRaw
+
+    const cacheParamsRaw = optionProps?.optionsCacheParams
+    const cacheParams =
+      typeof cacheParamsRaw === 'function'
+        ? cacheParamsRaw(currentModel)
+        : cacheParamsRaw
+
+    if (cacheKey) {
+      const mergedKey = `${cacheKey}:${stableSerialize(cacheParams)}`
+      if (optionsCacheMap.has(mergedKey)) {
+        asyncOptions[field.name] = optionsCacheMap.get(mergedKey) || []
+        loadingOptions[field.name] = false
+        return
+      }
+
+      const delay = Math.max(0, Number(field.debounceMs ?? 0))
+      const oldTimer = optionsDebounceTimerMap.get(field.name)
+      if (oldTimer) clearTimeout(oldTimer)
+      loadingOptions[field.name] = true
+
+      const run = () => {
+        applyAsync(
+          field.name,
+          token,
+          loader(currentModel),
+          (options) => {
+            const safeOptions = options || []
+            asyncOptions[field.name] = safeOptions
+            optionsCacheMap.set(mergedKey, safeOptions)
+          },
+          () => {
+            loadingOptions[field.name] = false
+          }
+        )
+      }
+
+      if (delay <= 0) {
+        run()
+        return
+      }
+
+      const timer = setTimeout(() => {
+        optionsDebounceTimerMap.delete(field.name)
+        run()
+      }, delay)
+      optionsDebounceTimerMap.set(field.name, timer)
+      return
+    }
+
     const delay = Math.max(0, Number(field.debounceMs ?? 0))
     const oldTimer = optionsDebounceTimerMap.get(field.name)
     if (oldTimer) clearTimeout(oldTimer)
 
     loadingOptions[field.name] = true
-
     const run = () => {
       applyAsync(
         field.name,
@@ -154,16 +251,17 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
     if (typeof field.option === 'function') {
       applyAsync(field.name, token, field.option(currentModel), (props) => {
-        resolvedFieldProps[field.name] = props || {}
+        const safeProps = props || {}
+        resolvedFieldProps[field.name] = safeProps
 
-        const directOptions = props?.options as OptionItem[] | undefined
+        const directOptions = safeProps.options as OptionItem[] | undefined
         if (Array.isArray(directOptions)) {
           asyncOptions[field.name] = directOptions
         }
 
-        const optionsLoader = props?.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
+        const optionsLoader = safeProps.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
         if (optionsLoader) {
-          scheduleOptionsLoad(field, token, optionsLoader, currentModel)
+          scheduleOptionsLoad(field, token, optionsLoader, currentModel, safeProps)
         }
       })
       return
@@ -179,7 +277,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
     const optionsLoader = props.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
     if (optionsLoader) {
-      scheduleOptionsLoad(field, token, optionsLoader, currentModel)
+      scheduleOptionsLoad(field, token, optionsLoader, currentModel, props)
     }
   }
 
@@ -201,7 +299,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   schema.fields.forEach(installFieldEffect)
 
   async function preloadOptions() {
-    // watchEffect already handles initial + reactive recompute
+    // watchers handle initial + reactive recompute
   }
 
   function getFieldOptions(field: FormFieldSchema) {
@@ -220,13 +318,24 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     return resolvedFieldDisabled[field.name] ?? false
   }
 
-  const reset = () => {
-    schema.fields.forEach((field) => {
-      const fallback = field.widget === 'checkbox-group' ? [] : ''
-      model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
+  function setValues(values: Record<string, unknown>) {
+    Object.keys(values).forEach((key) => {
+      model[key] = values[key]
+    })
+  }
+
+  function getValues() {
+    return { ...model }
+  }
+
+  const resetFields = () => {
+    Object.keys(initialSnapshot).forEach((key) => {
+      model[key] = initialSnapshot[key]
     })
     formRef.value?.clearValidate()
   }
+
+  const reset = resetFields
 
   const submit = async () => {
     const valid = await formRef.value?.validate().catch(() => false)
@@ -249,11 +358,15 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     loadingOptions,
     fieldLoadingMap: loadingOptions,
     fieldErrorMap,
+    fieldDebugMap,
     preloadOptions,
     getFieldOptions,
     resolveFieldProps,
     resolveFieldVisible,
     resolveFieldDisabled,
+    setValues,
+    getValues,
+    resetFields,
     reset,
     submit
   }

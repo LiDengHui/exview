@@ -26,6 +26,11 @@ const {
   resolveFieldProps,
   resolveFieldVisible,
   resolveFieldDisabled,
+  fieldErrorMap,
+  fieldDebugMap,
+  setValues,
+  getValues,
+  resetFields,
   submit,
   reset
 } = useSchemaForm(props.schema, props.model)
@@ -108,6 +113,13 @@ const fieldStateMap = computed(() => {
   return map
 })
 
+defineExpose({
+  setValues,
+  getValues,
+  resetFields,
+  submit
+})
+
 async function onAction(signal: string, validate?: boolean) {
   if (signal === 'reset') {
     reset()
@@ -180,6 +192,10 @@ async function onAction(signal: string, validate?: boolean) {
               </el-checkbox>
             </template>
           </component>
+          <div v-if="schema.debug" class="schema-debug">
+            <small>trace: {{ fieldDebugMap[field.name] || 'pending' }}</small>
+            <small v-if="fieldErrorMap[field.name]" class="schema-debug-error">error: {{ fieldErrorMap[field.name] }}</small>
+          </div>
         </el-form-item>
       </el-col>
       </template>
@@ -198,3 +214,16 @@ async function onAction(signal: string, validate?: boolean) {
     </el-form-item>
   </el-form>
 </template>
+
+<style scoped>
+.schema-debug {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  color: #909399;
+}
+
+.schema-debug-error {
+  color: #f56c6c;
+}
+</style>

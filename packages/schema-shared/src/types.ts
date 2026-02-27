@@ -39,6 +39,8 @@ export interface FormFieldSchema {
     value?: unknown
     options?: OptionItem[]
     optionsLoader?: (model: Record<string, unknown>) => Promise<OptionItem[]>
+    optionsCacheKey?: string | ((model: Record<string, unknown>) => string)
+    optionsCacheParams?: unknown | ((model: Record<string, unknown>) => unknown)
   }
   visible?: boolean | ((model: Record<string, unknown>) => MaybePromise<boolean>)
   visibleMode?: 'show' | 'if'
@@ -57,6 +59,10 @@ export interface ToolbarAction {
 export interface FormSchema {
   fields: FormFieldSchema[]
   toolbar?: string | ToolbarAction[]
+  initialValues?: Record<string, unknown>
+  debug?: boolean
+  onValuesChange?: (values: Record<string, unknown>, changedField?: string) => void
+  onFieldChange?: (field: string, value: unknown, values: Record<string, unknown>) => void
   validate?: (model: Record<string, unknown>, signal: string) => Promise<Record<string, unknown>> | Record<string, unknown>
 }
 
