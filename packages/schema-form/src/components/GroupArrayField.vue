@@ -29,6 +29,15 @@ function removeItem(index: number) {
   next.splice(index, 1)
   emit('update:modelValue', next)
 }
+
+function moveItem(index: number, direction: -1 | 1) {
+  const target = index + direction
+  if (target < 0 || target >= list.value.length) return
+  const next = [...list.value]
+  const [current] = next.splice(index, 1)
+  next.splice(target, 0, current)
+  emit('update:modelValue', next)
+}
 </script>
 
 <template>
@@ -39,6 +48,8 @@ function removeItem(index: number) {
         :placeholder="placeholder || `请输入第 ${index + 1} 项`"
         @update:model-value="(v) => updateAt(index, String(v ?? ''))"
       />
+      <el-button link :disabled="index === 0" @click="moveItem(index, -1)">上移</el-button>
+      <el-button link :disabled="index === list.length - 1" @click="moveItem(index, 1)">下移</el-button>
       <el-button type="danger" link @click="removeItem(index)">删除</el-button>
     </div>
     <el-button type="primary" link @click="addItem">+ 添加</el-button>
