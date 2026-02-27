@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useSchemaForm } from '../useSchemaForm'
 import { resolveSchemaFormComponent } from '../componentRegistry'
 import type { FormSchema } from '@exview/schema-shared'
@@ -55,6 +55,24 @@ function resolveSpan(field: FormSchema['fields'][number]) {
   return Math.min(24, Math.max(1, span))
 }
 
+function getFieldState(field: FormSchema['fields'][number]) {
+  const fieldProps = resolveFieldProps(field, model)
+  return {
+    fieldProps,
+    visible: resolveFieldVisible(field, model),
+    disabled: resolveFieldDisabled(field, model),
+    placeholder: (fieldProps.placeholder as string) || `请输入${field.label}`
+  }
+}
+
+const fieldStateMap = computed(() => {
+  const map: Record<string, ReturnType<typeof getFieldState>> = {}
+  for (const field of props.schema.fields) {
+    map[field.name] = getFieldState(field)
+  }
+  return map
+})
+
 async function onAction(signal: string, validate?: boolean) {
   if (signal === 'reset') {
     reset()
@@ -83,15 +101,15 @@ async function onAction(signal: string, validate?: boolean) {
         v-for="field in schema.fields"
         :key="field.name"
         :span="resolveSpan(field)"
-        v-show="resolveFieldVisible(field, model)"
+        v-show="fieldStateMap[field.name]?.visible"
       >
         <el-form-item :label="field.label" :prop="field.name">
           <component
             :is="resolveSchemaFormComponent(field)"
             v-model="model[field.name]"
-            :disabled="resolveFieldDisabled(field, model)"
-            v-bind="resolveFieldProps(field, model)"
-            :placeholder="(resolveFieldProps(field, model).placeholder as string) || `请输入${field.label}`"
+            :disabled="fieldStateMap[field.name]?.disabled"
+            v-bind="fieldStateMap[field.name]?.fieldProps"
+            :placeholder="fieldStateMap[field.name]?.placeholder"
             :type="isTextareaField(field) ? 'textarea' : undefined"
             :loading="isSelectField(field) ? loadingOptions[field.name] : undefined"
           >
