@@ -7,6 +7,9 @@ const props = withDefaults(defineProps<{
   modelValue?: unknown[]
   placeholder?: string
   itemSchema?: FormFieldSchema[]
+  minItems?: number
+  maxItems?: number
+  itemDefault?: unknown
 }>(), {
   modelValue: () => []
 })
@@ -27,12 +30,24 @@ function onInputUpdate(index: number, v: unknown) {
   updateAt(index, String(v ?? ''))
 }
 
+function canAdd() {
+  if (props.maxItems === undefined) return true
+  return list.value.length < props.maxItems
+}
+
+function canRemove() {
+  if (props.minItems === undefined) return true
+  return list.value.length > props.minItems
+}
+
 function addItem() {
-  const nextDefault = props.itemSchema?.length ? {} : ''
+  if (!canAdd()) return
+  const nextDefault = props.itemDefault ?? (props.itemSchema?.length ? {} : '')
   emit('update:modelValue', [...list.value, nextDefault])
 }
 
 function removeItem(index: number) {
+  if (!canRemove()) return
   const next = [...list.value]
   next.splice(index, 1)
   emit('update:modelValue', next)
@@ -72,9 +87,9 @@ function moveItem(index: number, direction: -1 | 1) {
       </template>
       <el-button link :disabled="index === 0" @click="moveItem(index, -1)">上移</el-button>
       <el-button link :disabled="index === list.length - 1" @click="moveItem(index, 1)">下移</el-button>
-      <el-button type="danger" link @click="removeItem(index)">删除</el-button>
+      <el-button type="danger" link :disabled="!canRemove()" @click="removeItem(index)">删除</el-button>
     </div>
-    <el-button type="primary" link @click="addItem">+ 添加</el-button>
+    <el-button type="primary" link :disabled="!canAdd()" @click="addItem">+ 添加</el-button>
   </div>
 </template>
 

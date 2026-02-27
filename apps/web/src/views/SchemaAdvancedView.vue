@@ -72,6 +72,9 @@ const schema: FormSchema = {
       name: 'skills',
       widget: 'group-array',
       row: true,
+      minItems: 1,
+      maxItems: 3,
+      itemDefault: { skill: 'NewSkill', level: 1 },
       defaultValue: [{ skill: 'Vue', level: 4 }],
       itemSchema: [
         { label: '技能名', name: 'skill', widget: 'input', span: 12 },
@@ -83,6 +86,8 @@ const schema: FormSchema = {
       name: 'config',
       widget: 'group-object',
       row: true,
+      minFields: 1,
+      maxFields: 4,
       defaultValue: { env: 'prod', retry: 3 },
       itemSchema: [
         { label: '环境', name: 'env', widget: 'input', span: 12 },

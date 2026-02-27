@@ -6,6 +6,8 @@ import SchemaForm from './SchemaForm.vue'
 const props = withDefaults(defineProps<{
   modelValue?: Record<string, unknown>
   itemSchema?: FormFieldSchema[]
+  minFields?: number
+  maxFields?: number
 }>(), {
   modelValue: () => ({})
 })
@@ -44,7 +46,18 @@ function onValueUpdate(key: string, v: unknown) {
   updateValue(key, String(v ?? ''))
 }
 
+function canAdd() {
+  if (props.maxFields === undefined) return true
+  return entries.value.length < props.maxFields
+}
+
+function canRemove() {
+  if (props.minFields === undefined) return true
+  return entries.value.length > props.minFields
+}
+
 function addEntry() {
+  if (!canAdd()) return
   const nextEntries = entries.value.map(([k, v]) => [k, v] as [string, unknown])
   const existingKeys = new Set(nextEntries.map(([k]) => k))
   let key = 'key'
@@ -57,6 +70,7 @@ function addEntry() {
 }
 
 function removeEntry(key: string) {
+  if (!canRemove()) return
   const nextEntries = entries.value.filter(([k]) => k !== key)
   emitEntries(nextEntries)
 }
@@ -88,9 +102,9 @@ function moveEntry(index: number, direction: -1 | 1) {
         <el-input :model-value="String(value ?? '')" placeholder="value" @update:model-value="onValueUpdate(key, $event)" />
         <el-button link :disabled="index === 0" @click="moveEntry(index, -1)">上移</el-button>
         <el-button link :disabled="index === entries.length - 1" @click="moveEntry(index, 1)">下移</el-button>
-        <el-button type="danger" link @click="removeEntry(key)">删除</el-button>
+        <el-button type="danger" link :disabled="!canRemove()" @click="removeEntry(key)">删除</el-button>
       </div>
-      <el-button type="primary" link @click="addEntry">+ 添加字段</el-button>
+      <el-button type="primary" link :disabled="!canAdd()" @click="addEntry">+ 添加字段</el-button>
     </template>
   </div>
 </template>

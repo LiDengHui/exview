@@ -63,6 +63,11 @@ export interface FormFieldSchema {
   validator?: (value: unknown, values: Record<string, unknown>) => MaybePromise<true | string>
   validatorDebounceMs?: number
   itemSchema?: FormFieldSchema[]
+  minItems?: number
+  maxItems?: number
+  minFields?: number
+  maxFields?: number
+  itemDefault?: unknown
   help?: string
   extra?: string
   visibleWhen?: FieldCondition
