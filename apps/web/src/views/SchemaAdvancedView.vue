@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { SchemaForm } from '@exview/schema-form'
-import type { FormSchema } from '@exview/schema-shared'
+import { SchemaForm, SchemaToolbar } from '@exview/schema-form'
+import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
 
 const formRef = ref<{
   getValues: () => Record<string, unknown>
   getOutputValues: () => Promise<Record<string, unknown>>
+  submitForm: () => Promise<Record<string, unknown> | null>
+  resetForm: () => Promise<void>
   isDirty: { value: boolean }
   isTouched: { value: boolean }
   isValid: () => Promise<boolean>
@@ -14,6 +16,11 @@ const formRef = ref<{
 } | null>(null)
 
 const stateInfo = ref('dirty=false, touched=false')
+
+const toolbarItems: ToolbarAction[] = [
+  { text: '提交', signal: 'submit', type: 'primary' },
+  { text: '重置', signal: 'reset', type: 'default' }
+]
 
 const schema: FormSchema = {
   debug: true,
@@ -100,6 +107,17 @@ async function checkUsername() {
   const ok = await formRef.value.validateField('username')
   ElMessage[ok ? 'success' : 'warning'](ok ? 'username 校验通过' : 'username 校验失败')
 }
+
+async function onToolbarAction(item: ToolbarAction) {
+  if (!formRef.value) return
+  if (item.signal === 'submit') {
+    await formRef.value.submitForm()
+    return
+  }
+  if (item.signal === 'reset') {
+    await formRef.value.resetForm()
+  }
+}
 </script>
 
 <template>
@@ -117,6 +135,7 @@ async function checkUsername() {
       </template>
       <template #footer>
         <el-space>
+          <SchemaToolbar :items="toolbarItems" @action="onToolbarAction" />
           <el-button @click="showOutput">查看 output 值</el-button>
           <el-button @click="checkUsername">校验用户名字段</el-button>
           <span>{{ stateInfo }}</span>

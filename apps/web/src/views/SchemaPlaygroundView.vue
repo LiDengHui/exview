@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { SchemaForm } from '@exview/schema-form'
-import type { FormSchema } from '@exview/schema-shared'
+import { SchemaForm, SchemaToolbar } from '@exview/schema-form'
+import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
 
 const schemaText = ref(`{
   "fields": [
@@ -39,12 +39,21 @@ const schemaText = ref(`{
         ]
       }
     }
-  ],
-  "toolbar": "submit,reset"
+  ]
 }`)
 
 const parseError = ref('')
 const resultText = ref('{}')
+
+const formRef = ref<{
+  submitForm: () => Promise<Record<string, unknown> | null>
+  resetForm: () => Promise<void>
+} | null>(null)
+
+const toolbarItems: ToolbarAction[] = [
+  { text: '提交', signal: 'submit', type: 'primary' },
+  { text: '重置', signal: 'reset', type: 'default' }
+]
 
 const schema = computed<FormSchema | null>(() => {
   try {
@@ -63,6 +72,17 @@ function onSubmit(model: Record<string, unknown>) {
 
 function onReset(model: Record<string, unknown>) {
   resultText.value = JSON.stringify(model, null, 2)
+}
+
+async function onToolbarAction(item: ToolbarAction) {
+  if (!formRef.value) return
+  if (item.signal === 'submit') {
+    await formRef.value.submitForm()
+    return
+  }
+  if (item.signal === 'reset') {
+    await formRef.value.resetForm()
+  }
 }
 </script>
 
@@ -97,10 +117,15 @@ function onReset(model: Record<string, unknown>) {
         </template>
         <SchemaForm
           v-if="schema"
+          ref="formRef"
           :schema="schema"
           @submit="onSubmit"
           @reset="onReset"
-        />
+        >
+          <template #footer>
+            <SchemaToolbar :items="toolbarItems" @action="onToolbarAction" />
+          </template>
+        </SchemaForm>
         <el-empty v-else description="请修复左侧 JSON" />
       </el-card>
 

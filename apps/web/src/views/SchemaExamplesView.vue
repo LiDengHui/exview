@@ -1,10 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { SchemaForm } from '@exview/schema-form'
-import type { FormSchema } from '@exview/schema-shared'
+import { SchemaForm, SchemaToolbar } from '@exview/schema-form'
+import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
 
 const resultText = ref('{}')
+
+const formRef = ref<{
+  submitForm: () => Promise<Record<string, unknown> | null>
+  resetForm: () => Promise<void>
+} | null>(null)
+
+const toolbarItems: ToolbarAction[] = [
+  { text: '提交', signal: 'submit', type: 'primary' },
+  { text: '重置', signal: 'reset', type: 'default' }
+]
 
 const schema: FormSchema = {
   fields: [
@@ -69,6 +79,17 @@ function onSubmit(model: Record<string, unknown>) {
 function onReset(model: Record<string, unknown>) {
   resultText.value = JSON.stringify(model, null, 2)
 }
+
+async function onToolbarAction(item: ToolbarAction) {
+  if (!formRef.value) return
+  if (item.signal === 'submit') {
+    await formRef.value.submitForm()
+    return
+  }
+  if (item.signal === 'reset') {
+    await formRef.value.resetForm()
+  }
+}
 </script>
 
 <template>
@@ -78,7 +99,11 @@ function onReset(model: Record<string, unknown>) {
         <template #header>
           <strong>SchemaForm 使用用例（span/row/group-array/group-object）</strong>
         </template>
-        <SchemaForm :schema="schema" @submit="onSubmit" @reset="onReset" />
+        <SchemaForm ref="formRef" :schema="schema" @submit="onSubmit" @reset="onReset">
+          <template #footer>
+            <SchemaToolbar :items="toolbarItems" @action="onToolbarAction" />
+          </template>
+        </SchemaForm>
       </el-card>
     </el-col>
     <el-col :span="10">

@@ -1,14 +1,24 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { SchemaForm } from '@exview/schema-form'
-import type { FormSchema } from '@exview/schema-shared'
+import { SchemaForm, SchemaToolbar } from '@exview/schema-form'
+import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
 
 const useTextarea = ref(false)
 const useSelect = ref(false)
 const showAdvanced = ref(true)
 
 const resultText = ref('{}')
+
+const formRef = ref<{
+  submitForm: () => Promise<Record<string, unknown> | null>
+  resetForm: () => Promise<void>
+} | null>(null)
+
+const toolbarItems: ToolbarAction[] = [
+  { text: '提交', signal: 'submit', type: 'primary' },
+  { text: '重置', signal: 'reset', type: 'default' }
+]
 
 const dynamicField = computed(() => {
   if (useSelect.value) {
@@ -115,6 +125,17 @@ function onSubmit(values: Record<string, unknown>) {
 function onReset(values: Record<string, unknown>) {
   resultText.value = JSON.stringify(values, null, 2)
 }
+
+async function onToolbarAction(item: ToolbarAction) {
+  if (!formRef.value) return
+  if (item.signal === 'submit') {
+    await formRef.value.submitForm()
+    return
+  }
+  if (item.signal === 'reset') {
+    await formRef.value.resetForm()
+  }
+}
 </script>
 
 <template>
@@ -133,7 +154,11 @@ function onReset(values: Record<string, unknown>) {
 
         <el-divider />
 
-        <SchemaForm :schema="schema" @submit="onSubmit" @reset="onReset" />
+        <SchemaForm ref="formRef" :schema="schema" @submit="onSubmit" @reset="onReset">
+          <template #footer>
+            <SchemaToolbar :items="toolbarItems" @action="onToolbarAction" />
+          </template>
+        </SchemaForm>
       </el-card>
     </el-col>
 
