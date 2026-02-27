@@ -36,6 +36,14 @@ function updateValue(key: string, value: string) {
   emitEntries(nextEntries)
 }
 
+function onKeyUpdate(key: string, v: unknown) {
+  updateKey(key, String(v ?? ''))
+}
+
+function onValueUpdate(key: string, v: unknown) {
+  updateValue(key, String(v ?? ''))
+}
+
 function addEntry() {
   const nextEntries = entries.value.map(([k, v]) => [k, v] as [string, unknown])
   const existingKeys = new Set(nextEntries.map(([k]) => k))
@@ -76,8 +84,8 @@ function moveEntry(index: number, direction: -1 | 1) {
 
     <template v-else>
       <div v-for="([key, value], index) in entries" :key="`${key}-${index}`" class="object-row">
-        <el-input :model-value="key" placeholder="key" @update:model-value="(v) => updateKey(key, String(v ?? ''))" />
-        <el-input :model-value="String(value ?? '')" placeholder="value" @update:model-value="(v) => updateValue(key, String(v ?? ''))" />
+        <el-input :model-value="key" placeholder="key" @update:model-value="onKeyUpdate(key, $event)" />
+        <el-input :model-value="String(value ?? '')" placeholder="value" @update:model-value="onValueUpdate(key, $event)" />
         <el-button link :disabled="index === 0" @click="moveEntry(index, -1)">上移</el-button>
         <el-button link :disabled="index === entries.length - 1" @click="moveEntry(index, 1)">下移</el-button>
         <el-button type="danger" link @click="removeEntry(key)">删除</el-button>

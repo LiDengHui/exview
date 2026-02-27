@@ -23,6 +23,10 @@ function updateAt(index: number, value: unknown) {
   emit('update:modelValue', next)
 }
 
+function onInputUpdate(index: number, v: unknown) {
+  updateAt(index, String(v ?? ''))
+}
+
 function addItem() {
   const nextDefault = props.itemSchema?.length ? {} : ''
   emit('update:modelValue', [...list.value, nextDefault])
@@ -63,7 +67,7 @@ function moveItem(index: number, direction: -1 | 1) {
         <el-input
           :model-value="String(item ?? '')"
           :placeholder="placeholder || `请输入第 ${index + 1} 项`"
-          @update:model-value="(v) => updateAt(index, String(v ?? ''))"
+          @update:model-value="onInputUpdate(index, $event)"
         />
       </template>
       <el-button link :disabled="index === 0" @click="moveItem(index, -1)">上移</el-button>

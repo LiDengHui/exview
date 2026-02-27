@@ -89,6 +89,19 @@ importers:
       vue:
         specifier: ^3.5.0
         version: 3.5.29(typescript@5.8.3)
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.4(vite@7.3.1(@types/node@24.10.14))(vue@3.5.29(typescript@5.8.3))
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      vite:
+        specifier: ^7.1.2
+        version: 7.3.1(@types/node@24.10.14)
+      vue-tsc:
+        specifier: ^3.0.6
+        version: 3.2.5(typescript@5.8.3)
 
   packages/schema-shared:
     dependencies:
@@ -98,6 +111,10 @@ importers:
       vue:
         specifier: ^3.5.0
         version: 3.5.29(typescript@5.8.3)
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
 
   packages/schema-table:
     dependencies:
@@ -110,6 +127,19 @@ importers:
       vue:
         specifier: ^3.5.0
         version: 3.5.29(typescript@5.8.3)
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.4(vite@7.3.1(@types/node@24.10.14))(vue@3.5.29(typescript@5.8.3))
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      vite:
+        specifier: ^7.1.2
+        version: 7.3.1(@types/node@24.10.14)
+      vue-tsc:
+        specifier: ^3.0.6
+        version: 3.2.5(typescript@5.8.3)
 
 packages:
 
