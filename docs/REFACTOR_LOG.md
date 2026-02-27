@@ -153,3 +153,11 @@
 - 动作：重写 `components/business/ExForm.vue`、`ExTable.vue`，按旧版 `src/view/*` 的 schema 使用方式完成迁移承载
 - 验证：`pnpm --filter @exview/web test`、`pnpm --filter @exview/web build` 均通过
 - 结果：从“手写字段组件”回归为“schema 驱动 + hooks 复用”的实现路径，便于后续扩展动态字段与服务端 schema 下发
+
+### [11:18] Step 26 - 对标开源项目优化 schema 配置能力
+- 动作：参考开源实现（vben form-ui、vue-element-plus-admin form）的类型与动态配置思路，扩展当前 schema 能力
+- 动作：新增字段级 `visible/disabled` 条件函数、`defaultValue`、动态 `option`（函数）、`optionsLoader`（异步选项加载）
+- 动作：表格列新增 `formatter`，通过 composable 统一单元格值解析
+- 动作：通用组件 `SchemaForm/SchemaTable` 对应接入上述能力，保持现有配置兼容
+- 验证：`pnpm --filter @exview/web test`、`pnpm --filter @exview/web build` 均通过
+- 结果：配置表达力更接近成熟中后台方案，后续可继续演进成“字段注册表 + slot/render 扩展”模式

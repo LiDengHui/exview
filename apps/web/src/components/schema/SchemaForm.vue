@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
+import { onMounted } from 'vue'
 import { useSchemaForm } from '../../composables/useSchemaForm'
 import type { FormSchema } from '../../schema/types'
 
@@ -13,13 +14,28 @@ const emit = defineEmits<{
   reset: [model: Record<string, unknown>]
 }>()
 
-const { formRef, model, rules, toolbar, submit, reset } = useSchemaForm(props.schema, props.model)
+const {
+  formRef,
+  model,
+  rules,
+  toolbar,
+  loadingOptions,
+  preloadOptions,
+  getFieldOptions,
+  resolveFieldProps,
+  resolveFieldVisible,
+  resolveFieldDisabled,
+  submit,
+  reset
+} = useSchemaForm(props.schema, props.model)
 
 const componentMap = {
   input: 'el-input',
   'input-number': 'el-input-number',
   select: 'el-select'
 } as const
+
+onMounted(preloadOptions)
 
 async function onAction(signal: string, validate?: boolean) {
   if (signal === 'reset') {
@@ -32,7 +48,7 @@ async function onAction(signal: string, validate?: boolean) {
     try {
       const payload = await submit()
       emit(signal as 'submit', payload)
-    } catch (error) {
+    } catch {
       ElMessage.warning('表单验证失败')
     }
     return
@@ -44,28 +60,32 @@ async function onAction(signal: string, validate?: boolean) {
 
 <template>
   <el-form ref="formRef" :model="model" :rules="rules" label-width="100px">
-    <el-form-item
-      v-for="field in schema.fields"
-      :key="field.name"
-      :label="field.label"
-      :prop="field.name"
-    >
-      <component
-        :is="componentMap[field.widget]"
-        v-model="model[field.name]"
-        v-bind="field.option"
-        :placeholder="(field.option?.placeholder as string) || `请输入${field.label}`"
+    <template v-for="field in schema.fields" :key="field.name">
+      <el-form-item
+        v-if="resolveFieldVisible(field, model)"
+        :label="field.label"
+        :prop="field.name"
       >
-        <template v-if="field.widget === 'select'">
-          <el-option
-            v-for="item in field.option?.options || []"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </template>
-      </component>
-    </el-form-item>
+        <component
+          :is="componentMap[field.widget]"
+          v-model="model[field.name]"
+          :disabled="resolveFieldDisabled(field, model)"
+          v-bind="resolveFieldProps(field, model)"
+          :placeholder="(resolveFieldProps(field, model).placeholder as string) || `请输入${field.label}`"
+          :loading="field.widget === 'select' ? loadingOptions[field.name] : undefined"
+        >
+          <template v-if="field.widget === 'select'">
+            <el-option
+              v-for="item in getFieldOptions(field)"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+              :disabled="item.disabled"
+            />
+          </template>
+        </component>
+      </el-form-item>
+    </template>
 
     <el-form-item>
       <el-button

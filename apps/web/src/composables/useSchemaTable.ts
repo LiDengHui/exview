@@ -22,6 +22,13 @@ export function useSchemaTable<T extends Record<string, unknown>>(schema: TableS
     }
   }
 
+  const resolveCellValue = (row: T, key: keyof T | string, index: number) => {
+    const column = schema.columns.find((item) => item.key === key)
+    const raw = row[key as keyof T]
+    if (column?.formatter) return column.formatter(row, raw, index)
+    return raw
+  }
+
   return {
     rows,
     visibleRows,
@@ -29,6 +36,7 @@ export function useSchemaTable<T extends Record<string, unknown>>(schema: TableS
     pageNum,
     pageSize,
     total: computed(() => rows.value.length),
+    resolveCellValue,
     refresh
   }
 }

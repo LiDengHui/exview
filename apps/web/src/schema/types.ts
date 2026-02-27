@@ -5,17 +5,24 @@ export type SchemaWidget = 'input' | 'input-number' | 'select'
 export interface OptionItem {
   label: string
   value: string | number
+  disabled?: boolean
 }
+
+export type DynamicProps = Record<string, unknown> | ((model: Record<string, unknown>) => Record<string, unknown>)
 
 export interface FormFieldSchema {
   label: string
   name: string
   widget: SchemaWidget
   rule?: string | Array<Record<string, unknown>>
-  option?: Record<string, unknown> & {
+  defaultValue?: unknown
+  option?: DynamicProps & {
     value?: unknown
     options?: OptionItem[]
+    optionsLoader?: (model: Record<string, unknown>) => Promise<OptionItem[]>
   }
+  visible?: boolean | ((model: Record<string, unknown>) => boolean)
+  disabled?: boolean | ((model: Record<string, unknown>) => boolean)
 }
 
 export interface ToolbarAction {
@@ -31,14 +38,15 @@ export interface FormSchema {
   validate?: (model: Record<string, unknown>, signal: string) => Promise<Record<string, unknown>> | Record<string, unknown>
 }
 
-export interface TableColumnSchema {
-  key: string
+export interface TableColumnSchema<T extends Record<string, unknown> = Record<string, unknown>> {
+  key: keyof T | string
   title: string
   width?: number
+  formatter?: (row: T, value: unknown, index: number) => unknown
 }
 
 export interface TableSchema<T extends Record<string, unknown>> {
-  columns: TableColumnSchema[]
+  columns: TableColumnSchema<T>[]
   data: T[] | (() => Promise<T[]>)
   rowKey?: string
   localPage?: boolean

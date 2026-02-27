@@ -11,7 +11,7 @@ const emit = defineEmits<{
   remove: [id: number]
 }>()
 
-const { visibleRows, loading, pageNum, pageSize, total, refresh } = useSchemaTable(props.schema)
+const { visibleRows, loading, pageNum, pageSize, total, resolveCellValue, refresh } = useSchemaTable(props.schema)
 
 onMounted(refresh)
 
@@ -23,12 +23,16 @@ defineExpose({ refresh })
     <el-table :data="visibleRows" :row-key="schema.rowKey || 'id'" style="width: 100%" v-loading="loading">
       <el-table-column type="index" width="60" label="#" />
       <el-table-column
-        v-for="column in schema.columns"
-        :key="column.key"
-        :prop="column.key"
+        v-for="(column, index) in schema.columns"
+        :key="String(column.key)"
+        :prop="String(column.key)"
         :label="column.title"
         :width="column.width"
-      />
+      >
+        <template #default="scope">
+          {{ resolveCellValue(scope.row, column.key, scope.$index ?? index) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="120">
         <template #default="scope">
           <el-button type="danger" link @click="emit('remove', Number(scope.row.id))">删除</el-button>

@@ -1,6 +1,6 @@
 import { computed, reactive, ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { FormSchema, ToolbarAction } from '../schema/types'
+import type { FormFieldSchema, FormSchema, OptionItem, ToolbarAction } from '../schema/types'
 
 const defaultToolbarMap: Record<string, ToolbarAction> = {
   submit: { text: '提交', signal: 'submit', type: 'primary', validate: true },
@@ -46,21 +46,60 @@ function resolveToolbar(toolbar?: FormSchema['toolbar']): ToolbarAction[] {
     .filter(Boolean)
 }
 
+function resolveFieldProps(field: FormFieldSchema, model: Record<string, unknown>) {
+  const option = field.option
+  if (!option) return {}
+  if (typeof option === 'function') return option(model)
+  return { ...option }
+}
+
+function resolveFieldVisible(field: FormFieldSchema, model: Record<string, unknown>) {
+  if (field.visible === undefined) return true
+  return typeof field.visible === 'function' ? field.visible(model) : field.visible
+}
+
+function resolveFieldDisabled(field: FormFieldSchema, model: Record<string, unknown>) {
+  if (field.disabled === undefined) return false
+  return typeof field.disabled === 'function' ? field.disabled(model) : field.disabled
+}
+
 export function useSchemaForm(schema: FormSchema, initialModel: Record<string, unknown> = {}) {
   const formRef = ref<FormInstance>()
+  const loadingOptions = reactive<Record<string, boolean>>({})
+  const asyncOptions = reactive<Record<string, OptionItem[]>>({})
   const model = reactive<Record<string, unknown>>({ ...initialModel })
 
   schema.fields.forEach((field) => {
     if (model[field.name] !== undefined) return
-    model[field.name] = field.option?.value ?? ''
+    model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? ''
   })
 
   const rules = computed(() => normalizeRules(schema))
   const toolbar = computed(() => resolveToolbar(schema.toolbar))
 
+  async function loadFieldOptions(field: FormFieldSchema) {
+    if (typeof field.option !== 'object' || !field.option?.optionsLoader) return
+    loadingOptions[field.name] = true
+    try {
+      asyncOptions[field.name] = await field.option.optionsLoader(model)
+    } finally {
+      loadingOptions[field.name] = false
+    }
+  }
+
+  async function preloadOptions() {
+    await Promise.all(schema.fields.map((field) => loadFieldOptions(field)))
+  }
+
+  function getFieldOptions(field: FormFieldSchema) {
+    if (asyncOptions[field.name]) return asyncOptions[field.name]
+    const props = resolveFieldProps(field, model)
+    return (props.options as OptionItem[] | undefined) || []
+  }
+
   const reset = () => {
     schema.fields.forEach((field) => {
-      model[field.name] = field.option?.value ?? ''
+      model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? ''
     })
     formRef.value?.clearValidate()
   }
@@ -83,6 +122,12 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     model,
     rules,
     toolbar,
+    loadingOptions,
+    preloadOptions,
+    getFieldOptions,
+    resolveFieldProps,
+    resolveFieldVisible,
+    resolveFieldDisabled,
     reset,
     submit
   }
