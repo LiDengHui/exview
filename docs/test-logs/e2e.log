@@ -1,0 +1,12 @@
+
+> @exview/web@0.1.0 test:e2e /Users/yanqi/work/exview/apps/web
+> playwright test
+
+
+Running 3 tests using 2 workers
+
+  ✓  1 e2e/smoke.spec.ts:3:1 › home and routes smoke (1.4s)
+  ✓  2 e2e/form-and-table.spec.ts:3:1 › form submit then appears in table (1.9s)
+  ✓  3 e2e/form-and-table.spec.ts:14:1 › table delete flow works (2.1s)
+
+  3 passed (9.1s)

@@ -1,0 +1,18 @@
+
+> @exview/web@0.1.0 test /Users/yanqi/work/exview/apps/web
+> vitest run
+
+
+ RUN  v3.2.4 /Users/yanqi/work/exview/apps/web
+
+ ✓ src/mock/users.spec.ts (2 tests) 4ms
+ ✓ src/services/userService.spec.ts (1 test) 4ms
+ ✓ src/services/http.spec.ts (1 test) 14ms
+ ✓ src/components/AppHeader.spec.ts (1 test) 27ms
+ ✓ src/components/FormView.spec.ts (1 test) 92ms
+
+ Test Files  5 passed (5)
+      Tests  6 passed (6)
+   Start at  23:31:37
+   Duration  3.49s (transform 456ms, setup 0ms, collect 3.02s, tests 140ms, environment 4.35s, prepare 1.40s)
+

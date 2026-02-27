@@ -1,0 +1,31 @@
+
+> @exview/web@0.1.0 build /Users/yanqi/work/exview/apps/web
+> vite build
+
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 1532 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                  0.47 kB │ gzip:  0.29 kB
+dist/assets/ToolbarView-3oFudasq.css             0.16 kB │ gzip:  0.12 kB
+dist/assets/el-card-DGFn2Dlf.css                 0.92 kB │ gzip:  0.33 kB
+dist/assets/MenuView-DAAP1VrO.css                2.10 kB │ gzip:  0.58 kB
+dist/assets/el-tag-DjxZVOpb.css                  5.73 kB │ gzip:  0.95 kB
+dist/assets/el-button-CDqfIFiK.css              15.58 kB │ gzip:  1.93 kB
+dist/assets/index-BpR6oSXq.css                  19.79 kB │ gzip:  3.93 kB
+dist/assets/FormView-BSU7EzAH.css               20.29 kB │ gzip:  3.04 kB
+dist/assets/TableView-SoOLJTVh.css              27.46 kB │ gzip:  4.09 kB
+dist/assets/event-DtoM6bpr.js                    0.21 kB │ gzip:  0.19 kB
+dist/assets/HomeView-52lBYe5E.js                 0.45 kB │ gzip:  0.38 kB
+dist/assets/use-form-common-props-DL1ePNEt.js    0.63 kB │ gzip:  0.37 kB
+dist/assets/ToolbarView-BfMta7vI.js              3.44 kB │ gzip:  1.70 kB
+dist/assets/el-button-BNcPT3dY.js                6.37 kB │ gzip:  2.58 kB
+dist/assets/el-card-CVRy3XLd.js                  6.69 kB │ gzip:  2.83 kB
+dist/assets/MenuView-HB0RlvpZ.js                 6.93 kB │ gzip:  2.97 kB
+dist/assets/userService-CTZq1jVe.js             22.78 kB │ gzip:  8.33 kB
+dist/assets/FormView-Cbx6zwzt.js                42.31 kB │ gzip: 15.25 kB
+dist/assets/vue-6Cxlg9vW.js                    103.43 kB │ gzip: 40.27 kB
+dist/assets/index-Bak3PQnv.js                  109.95 kB │ gzip: 38.99 kB
+dist/assets/TableView-jRBQw_K7.js              115.04 kB │ gzip: 39.69 kB
+✓ built in 4.77s
