@@ -55,6 +55,37 @@ function resolveSpan(field: FormSchema['fields'][number]) {
   return Math.min(24, Math.max(1, span))
 }
 
+function md5(str: string) {
+  let h1 = 0x67452301
+  let h2 = 0xefcdab89
+  let h3 = 0x98badcfe
+  let h4 = 0x10325476
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i)
+    h1 = (h1 ^ c) + ((h1 << 5) - h1)
+    h2 = (h2 ^ c) + ((h2 << 7) - h2)
+    h3 = (h3 ^ c) + ((h3 << 9) - h3)
+    h4 = (h4 ^ c) + ((h4 << 13) - h4)
+  }
+  const toHex = (n: number) => ((n >>> 0).toString(16).padStart(8, '0'))
+  return `${toHex(h1)}${toHex(h2)}${toHex(h3)}${toHex(h4)}`
+}
+
+function fieldSignature(field: FormSchema['fields'][number], index: number) {
+  const serialized = JSON.stringify(field, (_k, v) => {
+    if (typeof v === 'function') return `__fn__:${v.toString()}`
+    return v
+  })
+  return md5(`${index}:${serialized}`)
+}
+
+const renderedFields = computed(() => {
+  return props.schema.fields.map((field, index) => ({
+    ...field,
+    __id: fieldSignature(field, index)
+  }))
+})
+
 function getFieldState(field: FormSchema['fields'][number]) {
   const fieldProps = resolveFieldProps(field, model)
   const visible = resolveFieldVisible(field, model)
@@ -71,8 +102,8 @@ function getFieldState(field: FormSchema['fields'][number]) {
 
 const fieldStateMap = computed(() => {
   const map: Record<string, ReturnType<typeof getFieldState>> = {}
-  for (const field of props.schema.fields) {
-    map[field.name] = getFieldState(field)
+  for (const field of renderedFields.value) {
+    map[field.__id] = getFieldState(field)
   }
   return map
 })
@@ -101,19 +132,19 @@ async function onAction(signal: string, validate?: boolean) {
 <template>
   <el-form ref="formRef" :model="model" :rules="rules" label-width="100px" @submit.prevent>
     <el-row :gutter="12">
-      <template v-for="field in schema.fields" :key="field.name">
+      <template v-for="field in renderedFields" :key="field.__id">
         <el-col
-          v-if="fieldStateMap[field.name]?.shouldRender"
+          v-if="fieldStateMap[field.__id]?.shouldRender"
           :span="resolveSpan(field)"
-          v-show="fieldStateMap[field.name]?.visible"
+          v-show="fieldStateMap[field.__id]?.visible"
         >
           <el-form-item :label="field.label" :prop="field.name">
           <component
             :is="resolveSchemaFormComponent(field)"
             v-model="model[field.name]"
-            :disabled="fieldStateMap[field.name]?.disabled"
-            v-bind="fieldStateMap[field.name]?.fieldProps"
-            :placeholder="fieldStateMap[field.name]?.placeholder"
+            :disabled="fieldStateMap[field.__id]?.disabled"
+            v-bind="fieldStateMap[field.__id]?.fieldProps"
+            :placeholder="fieldStateMap[field.__id]?.placeholder"
             :type="isTextareaField(field) ? 'textarea' : undefined"
             :loading="isSelectField(field) ? loadingOptions[field.name] : undefined"
           >
