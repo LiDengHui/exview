@@ -41,6 +41,7 @@ export interface FormFieldSchema {
     optionsLoader?: (model: Record<string, unknown>) => Promise<OptionItem[]>
   }
   visible?: boolean | ((model: Record<string, unknown>) => MaybePromise<boolean>)
+  visibleMode?: 'show' | 'if'
   disabled?: boolean | ((model: Record<string, unknown>) => MaybePromise<boolean>)
   deps?: string[]
   debounceMs?: number

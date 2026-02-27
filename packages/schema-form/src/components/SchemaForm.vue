@@ -57,9 +57,13 @@ function resolveSpan(field: FormSchema['fields'][number]) {
 
 function getFieldState(field: FormSchema['fields'][number]) {
   const fieldProps = resolveFieldProps(field, model)
+  const visible = resolveFieldVisible(field, model)
+  const mode = field.visibleMode ?? 'show'
   return {
     fieldProps,
-    visible: resolveFieldVisible(field, model),
+    visible,
+    mode,
+    shouldRender: mode === 'if' ? visible : true,
     disabled: resolveFieldDisabled(field, model),
     placeholder: (fieldProps.placeholder as string) || `请输入${field.label}`
   }
@@ -97,13 +101,13 @@ async function onAction(signal: string, validate?: boolean) {
 <template>
   <el-form ref="formRef" :model="model" :rules="rules" label-width="100px" @submit.prevent>
     <el-row :gutter="12">
-      <el-col
-        v-for="field in schema.fields"
-        :key="field.name"
-        :span="resolveSpan(field)"
-        v-show="fieldStateMap[field.name]?.visible"
-      >
-        <el-form-item :label="field.label" :prop="field.name">
+      <template v-for="field in schema.fields" :key="field.name">
+        <el-col
+          v-if="fieldStateMap[field.name]?.shouldRender"
+          :span="resolveSpan(field)"
+          v-show="fieldStateMap[field.name]?.visible"
+        >
+          <el-form-item :label="field.label" :prop="field.name">
           <component
             :is="resolveSchemaFormComponent(field)"
             v-model="model[field.name]"
@@ -147,6 +151,7 @@ async function onAction(signal: string, validate?: boolean) {
           </component>
         </el-form-item>
       </el-col>
+      </template>
     </el-row>
 
     <el-form-item>
