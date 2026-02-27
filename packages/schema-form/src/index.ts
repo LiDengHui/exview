@@ -6,5 +6,12 @@ export {
   registerSchemaFormComponents,
   resolveSchemaFormComponent
 } from './componentRegistry'
+export {
+  registerSchemaField,
+  registerSchemaFields,
+  getSchemaFieldConfig,
+  getSchemaFieldRegistry
+} from './fieldRegistry'
 export { registerSchemaRule, getSchemaRule, getSchemaRuleMap } from './ruleRegistry'
+export type { FieldRegistryConfig, FieldCapability } from './fieldRegistry'
 export type { FormSchema, FormFieldSchema, FormFieldTransform, ToolbarAction, OptionItem } from '@exview/schema-shared'

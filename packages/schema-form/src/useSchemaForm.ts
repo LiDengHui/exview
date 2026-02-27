@@ -2,6 +2,7 @@ import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { FormFieldSchema, FormSchema, OptionItem } from '@exview/schema-shared'
 import { getSchemaRule } from './ruleRegistry'
+import { getSchemaFieldConfig } from './fieldRegistry'
 
 function normalizeRules(schema: FormSchema): FormRules {
   const rules: FormRules = {}
@@ -15,6 +16,10 @@ function normalizeRules(schema: FormSchema): FormRules {
       } else {
         bucket.push(...field.rule)
       }
+    } else {
+      const fieldName = typeof field.component === 'string' ? field.component : field.widget
+      const defaultRuleNames = getSchemaFieldConfig(fieldName)?.defaultRuleNames || []
+      bucket.push(...defaultRuleNames.map((name) => getSchemaRule(name)).filter(Boolean) as Record<string, unknown>[])
     }
 
     if (bucket.length > 0) {
@@ -303,6 +308,8 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     resolveTokenMap[field.name] = token
 
     const currentModel = model as Record<string, unknown>
+    const fieldName = typeof field.component === 'string' ? field.component : field.widget
+    const defaultFieldProps = getSchemaFieldConfig(fieldName)?.defaultProps || {}
 
     if (field.visible === undefined) {
       resolvedFieldVisible[field.name] = true
@@ -331,7 +338,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
     if (typeof field.option === 'function') {
       applyAsync(field.name, token, field.option(currentModel), (props) => {
-        const safeProps = props || {}
+        const safeProps = { ...defaultFieldProps, ...(props || {}) }
         const uiProps = sanitizeFieldProps(safeProps)
         resolvedFieldProps[field.name] = uiProps
 
@@ -348,7 +355,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
       return
     }
 
-    const props = { ...field.option }
+    const props = { ...defaultFieldProps, ...field.option }
     resolvedFieldProps[field.name] = sanitizeFieldProps(props)
 
     const directOptions = props.options as OptionItem[] | undefined
