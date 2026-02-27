@@ -48,7 +48,52 @@ const schema = computed<FormSchema>(() => ({
       widget: 'input',
       rule: 'required',
       span: 12,
-      option: { placeholder: '请输入用户名', value: '' }
+      option: { placeholder: '请输入用户名，输入 admin 看内部联动', value: '' }
+    },
+    {
+      label: '内部模式',
+      name: 'innerMode',
+      widget: 'select',
+      span: 12,
+      option: {
+        value: 'input',
+        options: [
+          { label: '输入框模式', value: 'input' },
+          { label: '下拉框模式', value: 'select' }
+        ]
+      }
+    },
+    {
+      label: '内部动态字段(input)',
+      name: 'innerDynamicValue',
+      widget: 'input',
+      span: 12,
+      deps: ['innerMode'],
+      visible: (model) => model.innerMode === 'input',
+      option: { placeholder: '由内部字段 innerMode 控制显示' }
+    },
+    {
+      label: '内部动态字段(select)',
+      name: 'innerDynamicValue',
+      widget: 'select',
+      span: 12,
+      deps: ['innerMode'],
+      visible: (model) => model.innerMode === 'select',
+      option: {
+        options: [
+          { label: '内部选项 1', value: 'inner-1' },
+          { label: '内部选项 2', value: 'inner-2' }
+        ]
+      }
+    },
+    {
+      label: '管理员备注(内部触发)',
+      name: 'adminNote',
+      widget: 'textarea',
+      row: true,
+      deps: ['username'],
+      visible: (model) => String(model.username || '').toLowerCase() === 'admin',
+      option: { placeholder: '当用户名=admin 时出现' }
     },
     dynamicField.value,
     {
