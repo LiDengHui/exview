@@ -17,7 +17,7 @@ export default defineConfig({
       eslintrc: { enabled: false }
     }),
     Components({
-      resolvers: [ElementPlusResolver({ importStyle: 'css' })],
+      resolvers: [ElementPlusResolver({ importStyle: false })],
       dts: 'src/components.d.ts'
     })
   ],
