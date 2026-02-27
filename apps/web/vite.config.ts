@@ -21,7 +21,7 @@ export default defineConfig({
       dts: 'src/components.d.ts'
     })
   ],
-  server: { port: 5173 },
+  server: { port: 5178 },
   build: {
     rollupOptions: {
       output: {
