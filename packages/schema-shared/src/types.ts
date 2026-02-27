@@ -1,6 +1,7 @@
 import type { FormRules } from 'element-plus'
+import type { Component } from 'vue'
 
-export type SchemaWidget = 'input' | 'input-number' | 'select'
+export type SchemaWidget = 'input' | 'input-number' | 'select' | (string & {})
 
 export interface OptionItem {
   label: string
@@ -13,7 +14,8 @@ export type DynamicProps = Record<string, unknown> | ((model: Record<string, unk
 export interface FormFieldSchema {
   label: string
   name: string
-  widget: SchemaWidget
+  widget?: SchemaWidget
+  component?: string | Component
   rule?: string | Array<Record<string, unknown>>
   defaultValue?: unknown
   option?: DynamicProps & {

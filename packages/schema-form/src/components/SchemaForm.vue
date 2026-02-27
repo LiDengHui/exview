@@ -2,6 +2,7 @@
 import { ElMessage } from 'element-plus'
 import { onMounted } from 'vue'
 import { useSchemaForm } from '../useSchemaForm'
+import { resolveSchemaFormComponent } from '../componentRegistry'
 import type { FormSchema } from '@exview/schema-shared'
 
 const props = defineProps<{
@@ -29,13 +30,11 @@ const {
   reset
 } = useSchemaForm(props.schema, props.model)
 
-const componentMap = {
-  input: 'el-input',
-  'input-number': 'el-input-number',
-  select: 'el-select'
-} as const
-
 onMounted(preloadOptions)
+
+function isSelectField(field: FormSchema['fields'][number]) {
+  return field.widget === 'select' || field.component === 'select'
+}
 
 async function onAction(signal: string, validate?: boolean) {
   if (signal === 'reset') {
@@ -67,14 +66,14 @@ async function onAction(signal: string, validate?: boolean) {
         :prop="field.name"
       >
         <component
-          :is="componentMap[field.widget]"
+          :is="resolveSchemaFormComponent(field)"
           v-model="model[field.name]"
           :disabled="resolveFieldDisabled(field, model)"
           v-bind="resolveFieldProps(field, model)"
           :placeholder="(resolveFieldProps(field, model).placeholder as string) || `请输入${field.label}`"
-          :loading="field.widget === 'select' ? loadingOptions[field.name] : undefined"
+          :loading="isSelectField(field) ? loadingOptions[field.name] : undefined"
         >
-          <template v-if="field.widget === 'select'">
+          <template v-if="isSelectField(field)">
             <el-option
               v-for="item in getFieldOptions(field)"
               :key="item.value"
