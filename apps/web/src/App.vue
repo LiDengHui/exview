@@ -10,6 +10,7 @@
           <el-menu-item index="/menu">菜单</el-menu-item>
           <el-menu-item index="/toolbar">工具栏</el-menu-item>
           <el-menu-item index="/schema-playground">Schema编辑器</el-menu-item>
+          <el-menu-item index="/schema-examples">Schema用例</el-menu-item>
         </el-menu>
       </el-aside>
       <el-main>
