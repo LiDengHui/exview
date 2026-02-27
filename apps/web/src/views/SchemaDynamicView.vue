@@ -102,8 +102,9 @@ const schema = computed<FormSchema>(() => ({
       widget: 'textarea',
       row: true,
       deps: ['username'],
-      visible: (model) => String(model.username || '').toLowerCase() === 'admin',
-      option: { placeholder: '当用户名=admin 时出现' }
+      visibleWhen: { field: 'username', equals: 'admin' },
+      requiredWhen: { field: 'username', equals: 'admin' },
+      option: { placeholder: '当用户名=admin 时出现（DSL: visibleWhen/requiredWhen）' }
     },
     dynamicField.value,
     {

@@ -31,6 +31,16 @@ export interface FormFieldTransform {
   output?: (value: unknown, values: Record<string, unknown>) => MaybePromise<unknown>
 }
 
+export type FieldCondition =
+  | ((values: Record<string, unknown>) => MaybePromise<boolean>)
+  | {
+      field: string
+      equals?: unknown
+      notEquals?: unknown
+      in?: unknown[]
+      truthy?: boolean
+    }
+
 export interface ResponsiveSpan {
   xs?: number
   sm?: number
@@ -55,6 +65,9 @@ export interface FormFieldSchema {
   itemSchema?: FormFieldSchema[]
   help?: string
   extra?: string
+  visibleWhen?: FieldCondition
+  disabledWhen?: FieldCondition
+  requiredWhen?: FieldCondition
   option?: DynamicProps & {
     value?: unknown
     options?: OptionItem[]

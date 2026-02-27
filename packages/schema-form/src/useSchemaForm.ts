@@ -1,10 +1,22 @@
 import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { FormFieldSchema, FormSchema, OptionItem } from '@exview/schema-shared'
+import type { FieldCondition, FormFieldSchema, FormSchema, OptionItem } from '@exview/schema-shared'
 import { getSchemaRule } from './ruleRegistry'
 import { getSchemaFieldConfig } from './fieldRegistry'
 
-function normalizeRules(schema: FormSchema): FormRules {
+async function evaluateCondition(condition: FieldCondition | undefined, values: Record<string, unknown>) {
+  if (!condition) return undefined
+  if (typeof condition === 'function') return await condition(values)
+
+  const current = values[condition.field]
+  if (condition.equals !== undefined) return current === condition.equals
+  if (condition.notEquals !== undefined) return current !== condition.notEquals
+  if (condition.in) return condition.in.includes(current)
+  if (condition.truthy !== undefined) return condition.truthy ? Boolean(current) : !Boolean(current)
+  return undefined
+}
+
+function normalizeRules(schema: FormSchema, values: Record<string, unknown>, requiredWhenMap: Record<string, boolean>): FormRules {
   const rules: FormRules = {}
   schema.fields.forEach((field) => {
     const bucket: Record<string, unknown>[] = []
@@ -20,6 +32,10 @@ function normalizeRules(schema: FormSchema): FormRules {
       const fieldName = typeof field.component === 'string' ? field.component : field.widget
       const defaultRuleNames = getSchemaFieldConfig(fieldName)?.defaultRuleNames || []
       bucket.push(...defaultRuleNames.map((name) => getSchemaRule(name)).filter(Boolean) as Record<string, unknown>[])
+    }
+
+    if (requiredWhenMap[field.name]) {
+      bucket.push({ required: true, message: `${field.label}为必填项`, trigger: 'blur' })
     }
 
     if (bucket.length > 0) {
@@ -58,6 +74,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   const resolvedFieldProps = reactive<Record<string, Record<string, unknown>>>({})
   const resolvedFieldVisible = reactive<Record<string, boolean>>({})
   const resolvedFieldDisabled = reactive<Record<string, boolean>>({})
+  const requiredWhenMap = reactive<Record<string, boolean>>({})
   const fieldDebugMap = reactive<Record<string, string>>({})
   const resolveTokenMap = reactive<Record<string, number>>({})
   const optionsDebounceTimerMap = new Map<string, ReturnType<typeof setTimeout>>()
@@ -91,6 +108,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     dirtyMap[field.name] = false
     fieldErrorMap[field.name] = null
     fieldDebugMap[field.name] = ''
+    requiredWhenMap[field.name] = false
   })
 
   Object.assign(model, mergedInitialValues, persistedValues)
@@ -99,7 +117,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   let previousSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
 
   const rules = computed(() => {
-    const base = normalizeRules(schema)
+    const base = normalizeRules(schema, model as Record<string, unknown>, requiredWhenMap)
 
     schema.fields.forEach((field) => {
       if (!field.validator) return
@@ -311,7 +329,11 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     const fieldName = typeof field.component === 'string' ? field.component : field.widget
     const defaultFieldProps = getSchemaFieldConfig(fieldName)?.defaultProps || {}
 
-    if (field.visible === undefined) {
+    if (field.visibleWhen !== undefined) {
+      applyAsync(field.name, token, evaluateCondition(field.visibleWhen, currentModel), (v) => {
+        resolvedFieldVisible[field.name] = v ?? true
+      })
+    } else if (field.visible === undefined) {
       resolvedFieldVisible[field.name] = true
     } else if (typeof field.visible === 'function') {
       applyAsync(field.name, token, field.visible(currentModel), (v) => {
@@ -321,7 +343,11 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
       resolvedFieldVisible[field.name] = field.visible
     }
 
-    if (field.disabled === undefined) {
+    if (field.disabledWhen !== undefined) {
+      applyAsync(field.name, token, evaluateCondition(field.disabledWhen, currentModel), (v) => {
+        resolvedFieldDisabled[field.name] = v ?? false
+      })
+    } else if (field.disabled === undefined) {
       resolvedFieldDisabled[field.name] = false
     } else if (typeof field.disabled === 'function') {
       applyAsync(field.name, token, field.disabled(currentModel), (v) => {
@@ -329,6 +355,14 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
       })
     } else {
       resolvedFieldDisabled[field.name] = field.disabled
+    }
+
+    if (field.requiredWhen !== undefined) {
+      applyAsync(field.name, token, evaluateCondition(field.requiredWhen, currentModel), (v) => {
+        requiredWhenMap[field.name] = Boolean(v)
+      })
+    } else {
+      requiredWhenMap[field.name] = false
     }
 
     if (!field.option) {
