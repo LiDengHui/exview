@@ -1,11 +1,20 @@
 import type { FormRules } from 'element-plus'
 import type { Component } from 'vue'
 
-export type SchemaWidget = 'input' | 'input-number' | 'select' | (string & {})
+export type SchemaWidget =
+  | 'input'
+  | 'textarea'
+  | 'input-number'
+  | 'select'
+  | 'switch'
+  | 'radio-group'
+  | 'checkbox-group'
+  | 'date-picker'
+  | (string & {})
 
 export interface OptionItem {
   label: string
-  value: string | number
+  value: string | number | boolean
   disabled?: boolean
 }
 

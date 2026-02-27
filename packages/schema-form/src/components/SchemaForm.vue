@@ -36,6 +36,18 @@ function isSelectField(field: FormSchema['fields'][number]) {
   return field.widget === 'select' || field.component === 'select'
 }
 
+function isRadioGroupField(field: FormSchema['fields'][number]) {
+  return field.widget === 'radio-group' || field.component === 'radio-group'
+}
+
+function isCheckboxGroupField(field: FormSchema['fields'][number]) {
+  return field.widget === 'checkbox-group' || field.component === 'checkbox-group'
+}
+
+function isTextareaField(field: FormSchema['fields'][number]) {
+  return field.widget === 'textarea' || field.component === 'textarea'
+}
+
 async function onAction(signal: string, validate?: boolean) {
   if (signal === 'reset') {
     reset()
@@ -71,6 +83,7 @@ async function onAction(signal: string, validate?: boolean) {
           :disabled="resolveFieldDisabled(field, model)"
           v-bind="resolveFieldProps(field, model)"
           :placeholder="(resolveFieldProps(field, model).placeholder as string) || `请输入${field.label}`"
+          :type="isTextareaField(field) ? 'textarea' : undefined"
           :loading="isSelectField(field) ? loadingOptions[field.name] : undefined"
         >
           <template v-if="isSelectField(field)">
@@ -81,6 +94,28 @@ async function onAction(signal: string, validate?: boolean) {
               :value="item.value"
               :disabled="item.disabled"
             />
+          </template>
+
+          <template v-else-if="isRadioGroupField(field)">
+            <el-radio
+              v-for="item in getFieldOptions(field)"
+              :key="item.value"
+              :label="item.value"
+              :disabled="item.disabled"
+            >
+              {{ item.label }}
+            </el-radio>
+          </template>
+
+          <template v-else-if="isCheckboxGroupField(field)">
+            <el-checkbox
+              v-for="item in getFieldOptions(field)"
+              :key="item.value"
+              :label="item.value"
+              :disabled="item.disabled"
+            >
+              {{ item.label }}
+            </el-checkbox>
           </template>
         </component>
       </el-form-item>

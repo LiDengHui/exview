@@ -5,8 +5,13 @@ type RegistryValue = string | Component
 
 const registry = new Map<string, RegistryValue>([
   ['input', 'el-input'],
+  ['textarea', 'el-input'],
   ['input-number', 'el-input-number'],
-  ['select', 'el-select']
+  ['select', 'el-select'],
+  ['switch', 'el-switch'],
+  ['radio-group', 'el-radio-group'],
+  ['checkbox-group', 'el-checkbox-group'],
+  ['date-picker', 'el-date-picker']
 ])
 
 export function registerSchemaFormComponent(name: string, component: RegistryValue) {

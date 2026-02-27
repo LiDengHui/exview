@@ -55,7 +55,8 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
   schema.fields.forEach((field) => {
     if (model[field.name] !== undefined) return
-    model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? ''
+    const fallback = field.widget === 'checkbox-group' ? [] : ''
+    model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
   })
 
   const rules = computed(() => normalizeRules(schema))
@@ -83,7 +84,8 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
   const reset = () => {
     schema.fields.forEach((field) => {
-      model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? ''
+      const fallback = field.widget === 'checkbox-group' ? [] : ''
+      model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
     })
     formRef.value?.clearValidate()
   }
