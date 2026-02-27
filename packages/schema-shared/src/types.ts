@@ -42,6 +42,8 @@ export interface FormFieldSchema {
   }
   visible?: boolean | ((model: Record<string, unknown>) => MaybePromise<boolean>)
   disabled?: boolean | ((model: Record<string, unknown>) => MaybePromise<boolean>)
+  deps?: string[]
+  debounceMs?: number
 }
 
 export interface ToolbarAction {

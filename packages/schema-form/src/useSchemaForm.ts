@@ -1,4 +1,4 @@
-import { computed, reactive, ref, watchEffect } from 'vue'
+import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { FormFieldSchema, FormSchema, OptionItem, ToolbarAction } from '@exview/schema-shared'
 
@@ -54,6 +54,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   const resolvedFieldVisible = reactive<Record<string, boolean>>({})
   const resolvedFieldDisabled = reactive<Record<string, boolean>>({})
   const resolveTokenMap = reactive<Record<string, number>>({})
+  const optionsDebounceTimerMap = new Map<string, ReturnType<typeof setTimeout>>()
 
   const model = reactive<Record<string, unknown>>({ ...initialModel })
 
@@ -87,88 +88,118 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
       })
   }
 
-  function installFieldEffect(field: FormFieldSchema) {
-    watchEffect(() => {
-      const token = (resolveTokenMap[field.name] ?? 0) + 1
-      resolveTokenMap[field.name] = token
+  function scheduleOptionsLoad(
+    field: FormFieldSchema,
+    token: number,
+    loader: (m: Record<string, unknown>) => Promise<OptionItem[]>,
+    currentModel: Record<string, unknown>
+  ) {
+    const delay = Math.max(0, Number(field.debounceMs ?? 0))
+    const oldTimer = optionsDebounceTimerMap.get(field.name)
+    if (oldTimer) clearTimeout(oldTimer)
 
-      const currentModel = model as Record<string, unknown>
+    loadingOptions[field.name] = true
 
-      if (field.visible === undefined) {
-        resolvedFieldVisible[field.name] = true
-      } else if (typeof field.visible === 'function') {
-        applyAsync(field.name, token, field.visible(currentModel), (v) => {
-          resolvedFieldVisible[field.name] = v ?? true
-        })
-      } else {
-        resolvedFieldVisible[field.name] = field.visible
-      }
+    const run = () => {
+      applyAsync(
+        field.name,
+        token,
+        loader(currentModel),
+        (options) => {
+          asyncOptions[field.name] = options || []
+        },
+        () => {
+          loadingOptions[field.name] = false
+        }
+      )
+    }
 
-      if (field.disabled === undefined) {
-        resolvedFieldDisabled[field.name] = false
-      } else if (typeof field.disabled === 'function') {
-        applyAsync(field.name, token, field.disabled(currentModel), (v) => {
-          resolvedFieldDisabled[field.name] = v ?? false
-        })
-      } else {
-        resolvedFieldDisabled[field.name] = field.disabled
-      }
+    if (delay <= 0) {
+      run()
+      return
+    }
 
-      if (!field.option) {
-        resolvedFieldProps[field.name] = {}
-        return
-      }
+    const timer = setTimeout(() => {
+      optionsDebounceTimerMap.delete(field.name)
+      run()
+    }, delay)
+    optionsDebounceTimerMap.set(field.name, timer)
+  }
 
-      if (typeof field.option === 'function') {
-        applyAsync(field.name, token, field.option(currentModel), (props) => {
-          resolvedFieldProps[field.name] = props || {}
+  function runFieldResolver(field: FormFieldSchema) {
+    const token = (resolveTokenMap[field.name] ?? 0) + 1
+    resolveTokenMap[field.name] = token
 
-          const directOptions = props?.options as OptionItem[] | undefined
-          if (Array.isArray(directOptions)) {
-            asyncOptions[field.name] = directOptions
-          }
+    const currentModel = model as Record<string, unknown>
 
-          const optionsLoader = props?.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
-          if (optionsLoader) {
-            loadingOptions[field.name] = true
-            applyAsync(
-              field.name,
-              token,
-              optionsLoader(currentModel),
-              (options) => {
-                asyncOptions[field.name] = options || []
-              },
-              () => {
-                loadingOptions[field.name] = false
-              }
-            )
-          }
-        })
-      } else {
-        const props = { ...field.option }
-        resolvedFieldProps[field.name] = props
+    if (field.visible === undefined) {
+      resolvedFieldVisible[field.name] = true
+    } else if (typeof field.visible === 'function') {
+      applyAsync(field.name, token, field.visible(currentModel), (v) => {
+        resolvedFieldVisible[field.name] = v ?? true
+      })
+    } else {
+      resolvedFieldVisible[field.name] = field.visible
+    }
 
-        const directOptions = props.options as OptionItem[] | undefined
+    if (field.disabled === undefined) {
+      resolvedFieldDisabled[field.name] = false
+    } else if (typeof field.disabled === 'function') {
+      applyAsync(field.name, token, field.disabled(currentModel), (v) => {
+        resolvedFieldDisabled[field.name] = v ?? false
+      })
+    } else {
+      resolvedFieldDisabled[field.name] = field.disabled
+    }
+
+    if (!field.option) {
+      resolvedFieldProps[field.name] = {}
+      return
+    }
+
+    if (typeof field.option === 'function') {
+      applyAsync(field.name, token, field.option(currentModel), (props) => {
+        resolvedFieldProps[field.name] = props || {}
+
+        const directOptions = props?.options as OptionItem[] | undefined
         if (Array.isArray(directOptions)) {
           asyncOptions[field.name] = directOptions
         }
 
-        const optionsLoader = props.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
+        const optionsLoader = props?.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
         if (optionsLoader) {
-          loadingOptions[field.name] = true
-          applyAsync(
-            field.name,
-            token,
-            optionsLoader(currentModel),
-            (options) => {
-              asyncOptions[field.name] = options || []
-            },
-            () => {
-              loadingOptions[field.name] = false
-            }
-          )
+          scheduleOptionsLoad(field, token, optionsLoader, currentModel)
         }
-      }
+      })
+      return
+    }
+
+    const props = { ...field.option }
+    resolvedFieldProps[field.name] = props
+
+    const directOptions = props.options as OptionItem[] | undefined
+    if (Array.isArray(directOptions)) {
+      asyncOptions[field.name] = directOptions
+    }
+
+    const optionsLoader = props.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
+    if (optionsLoader) {
+      scheduleOptionsLoad(field, token, optionsLoader, currentModel)
+    }
+  }
+
+  function installFieldEffect(field: FormFieldSchema) {
+    if (field.deps?.length) {
+      watch(
+        () => field.deps!.map((key) => model[key]),
+        () => runFieldResolver(field),
+        { immediate: true }
+      )
+      return
+    }
+
+    watchEffect(() => {
+      runFieldResolver(field)
     })
   }
 
