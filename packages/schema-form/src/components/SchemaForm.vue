@@ -70,7 +70,7 @@ async function onAction(signal: string, validate?: boolean) {
 </script>
 
 <template>
-  <el-form ref="formRef" :model="model" :rules="rules" label-width="100px">
+  <el-form ref="formRef" :model="model" :rules="rules" label-width="100px" @submit.prevent>
     <template v-for="field in schema.fields" :key="field.name">
       <el-form-item
         v-if="resolveFieldVisible(field, model)"
@@ -126,6 +126,7 @@ async function onAction(signal: string, validate?: boolean) {
         v-for="item in toolbar"
         :key="item.signal"
         :type="item.type as any"
+        native-type="button"
         @click="onAction(item.signal, item.validate)"
       >
         {{ item.text }}
