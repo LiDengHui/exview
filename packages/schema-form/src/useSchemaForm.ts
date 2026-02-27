@@ -44,6 +44,13 @@ function stableSerialize(value: unknown): string {
   return `{${Object.keys(record).sort().map((k) => `${k}:${stableSerialize(record[k])}`).join(',')}}`
 }
 
+function sanitizeFieldProps(props: Record<string, unknown>) {
+  const next = { ...props }
+  delete next.value
+  delete next.modelValue
+  return next
+}
+
 export function useSchemaForm(schema: FormSchema, initialModel: Record<string, unknown> = {}) {
   const formRef = ref<FormInstance>()
   const loadingOptions = reactive<Record<string, boolean>>({})
@@ -260,7 +267,8 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     if (typeof field.option === 'function') {
       applyAsync(field.name, token, field.option(currentModel), (props) => {
         const safeProps = props || {}
-        resolvedFieldProps[field.name] = safeProps
+        const uiProps = sanitizeFieldProps(safeProps)
+        resolvedFieldProps[field.name] = uiProps
 
         const directOptions = safeProps.options as OptionItem[] | undefined
         if (Array.isArray(directOptions)) {
@@ -276,7 +284,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     }
 
     const props = { ...field.option }
-    resolvedFieldProps[field.name] = props
+    resolvedFieldProps[field.name] = sanitizeFieldProps(props)
 
     const directOptions = props.options as OptionItem[] | undefined
     if (Array.isArray(directOptions)) {
