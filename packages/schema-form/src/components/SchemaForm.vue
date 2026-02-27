@@ -3,7 +3,8 @@ import { ElMessage } from 'element-plus'
 import { computed, onMounted } from 'vue'
 import { useSchemaForm } from '../useSchemaForm'
 import { resolveSchemaFormComponent } from '../componentRegistry'
-import type { FormSchema } from '@exview/schema-shared'
+import SchemaToolbar from './SchemaToolbar.vue'
+import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
 
 const props = defineProps<{
   schema: FormSchema
@@ -135,24 +136,24 @@ defineExpose({
   isTouched
 })
 
-async function onAction(signal: string, validate?: boolean) {
-  if (signal === 'reset') {
+async function onAction(item: ToolbarAction) {
+  if (item.signal === 'reset') {
     reset()
     emit('reset', { ...model })
     return
   }
 
-  if (validate) {
+  if (item.validate) {
     try {
       const payload = await submit()
-      emit(signal as 'submit', payload)
+      emit(item.signal as 'submit', payload)
     } catch {
       ElMessage.warning('表单验证失败')
     }
     return
   }
 
-  emit(signal as 'submit', { ...model })
+  emit(item.signal as 'submit', { ...model })
 }
 </script>
 
@@ -237,15 +238,7 @@ async function onAction(signal: string, validate?: boolean) {
     </el-row>
 
     <el-form-item>
-      <el-button
-        v-for="item in toolbar"
-        :key="item.signal"
-        :type="item.type as any"
-        native-type="button"
-        @click="onAction(item.signal, item.validate)"
-      >
-        {{ item.text }}
-      </el-button>
+      <SchemaToolbar :items="toolbar" @action="onAction" />
     </el-form-item>
 
     <slot name="footer" :model="model" :submit="submit" :reset="resetFields" />

@@ -74,6 +74,8 @@ export interface ToolbarAction {
   signal: string
   type?: '' | 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info'
   validate?: boolean
+  confirm?: string
+  disabled?: boolean
 }
 
 export interface FormSchema {

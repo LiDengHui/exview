@@ -1,4 +1,5 @@
 export { default as SchemaForm } from './components/SchemaForm.vue'
+export { default as SchemaToolbar } from './components/SchemaToolbar.vue'
 export { useSchemaForm } from './useSchemaForm'
 export {
   registerSchemaFormComponent,
