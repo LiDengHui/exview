@@ -10,6 +10,8 @@ export type SchemaWidget =
   | 'radio-group'
   | 'checkbox-group'
   | 'date-picker'
+  | 'group-array'
+  | 'group-object'
   | (string & {})
 
 export interface OptionItem {
@@ -25,6 +27,8 @@ export interface FormFieldSchema {
   name: string
   widget?: SchemaWidget
   component?: string | Component
+  span?: number
+  row?: boolean
   rule?: string | Array<Record<string, unknown>>
   defaultValue?: unknown
   option?: DynamicProps & {

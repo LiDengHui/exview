@@ -1,5 +1,7 @@
 import type { Component } from 'vue'
 import type { FormFieldSchema } from '@exview/schema-shared'
+import GroupArrayField from './components/GroupArrayField.vue'
+import GroupObjectField from './components/GroupObjectField.vue'
 
 type RegistryValue = string | Component
 
@@ -11,7 +13,9 @@ const registry = new Map<string, RegistryValue>([
   ['switch', 'el-switch'],
   ['radio-group', 'el-radio-group'],
   ['checkbox-group', 'el-checkbox-group'],
-  ['date-picker', 'el-date-picker']
+  ['date-picker', 'el-date-picker'],
+  ['group-array', GroupArrayField],
+  ['group-object', GroupObjectField]
 ])
 
 export function registerSchemaFormComponent(name: string, component: RegistryValue) {
