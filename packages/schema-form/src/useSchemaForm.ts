@@ -1,21 +1,11 @@
 import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { FormFieldSchema, FormSchema, OptionItem, ToolbarAction } from '@exview/schema-shared'
+import { getSchemaRule } from './ruleRegistry'
 
 const defaultToolbarMap: Record<string, ToolbarAction> = {
   submit: { text: '提交', signal: 'submit', type: 'primary', validate: true },
   reset: { text: '重置', signal: 'reset', type: 'default' }
-}
-
-const namedRuleMap: Record<string, Record<string, unknown>> = {
-  required: { required: true, message: '该字段为必填项', trigger: 'blur' },
-  requiredNum: { required: true, type: 'number', message: '请输入数字', trigger: 'change' },
-  email: { type: 'email', message: '邮箱格式不正确', trigger: 'blur' },
-  phone: {
-    pattern: /^1\d{10}$/,
-    message: '手机号格式不正确',
-    trigger: 'blur'
-  }
 }
 
 function normalizeRules(schema: FormSchema): FormRules {
@@ -25,7 +15,7 @@ function normalizeRules(schema: FormSchema): FormRules {
 
     if (typeof field.rule === 'string') {
       const names = field.rule.split(',').map((name) => name.trim()).filter(Boolean)
-      rules[field.name] = names.map((name) => namedRuleMap[name]).filter(Boolean)
+      rules[field.name] = names.map((name) => getSchemaRule(name)).filter(Boolean)
       return
     }
 
@@ -49,6 +39,7 @@ function resolveToolbar(toolbar?: FormSchema['toolbar']): ToolbarAction[] {
 export function useSchemaForm(schema: FormSchema, initialModel: Record<string, unknown> = {}) {
   const formRef = ref<FormInstance>()
   const loadingOptions = reactive<Record<string, boolean>>({})
+  const fieldErrorMap = reactive<Record<string, string | null>>({})
   const asyncOptions = reactive<Record<string, OptionItem[]>>({})
   const resolvedFieldProps = reactive<Record<string, Record<string, unknown>>>({})
   const resolvedFieldVisible = reactive<Record<string, boolean>>({})
@@ -59,9 +50,11 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   const model = reactive<Record<string, unknown>>({ ...initialModel })
 
   schema.fields.forEach((field) => {
-    if (model[field.name] !== undefined) return
-    const fallback = field.widget === 'checkbox-group' ? [] : ''
-    model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
+    if (model[field.name] === undefined) {
+      const fallback = field.widget === 'checkbox-group' ? [] : ''
+      model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
+    }
+    fieldErrorMap[field.name] = null
   })
 
   const rules = computed(() => normalizeRules(schema))
@@ -77,10 +70,12 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     Promise.resolve(task)
       .then((value) => {
         if (resolveTokenMap[fieldName] !== token) return
+        fieldErrorMap[fieldName] = null
         apply(value)
       })
-      .catch(() => {
-        // keep previous value on async error
+      .catch((error) => {
+        if (resolveTokenMap[fieldName] !== token) return
+        fieldErrorMap[fieldName] = error instanceof Error ? error.message : '字段异步计算失败'
       })
       .finally(() => {
         if (resolveTokenMap[fieldName] !== token) return
@@ -252,6 +247,8 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     rules,
     toolbar,
     loadingOptions,
+    fieldLoadingMap: loadingOptions,
+    fieldErrorMap,
     preloadOptions,
     getFieldOptions,
     resolveFieldProps,
