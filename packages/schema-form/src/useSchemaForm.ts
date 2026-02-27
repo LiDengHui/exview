@@ -1,7 +1,6 @@
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { FormFieldSchema, FormSchema, OptionItem, ToolbarAction } from '@exview/schema-shared'
-import { resolveFieldDisabled, resolveFieldProps, resolveFieldVisible } from '@exview/schema-shared'
 
 const defaultToolbarMap: Record<string, ToolbarAction> = {
   submit: { text: '提交', signal: 'submit', type: 'primary', validate: true },
@@ -47,10 +46,19 @@ function resolveToolbar(toolbar?: FormSchema['toolbar']): ToolbarAction[] {
     .filter(Boolean)
 }
 
+async function resolveMaybeAsync<T>(value: T | Promise<T>): Promise<T> {
+  return await value
+}
+
 export function useSchemaForm(schema: FormSchema, initialModel: Record<string, unknown> = {}) {
   const formRef = ref<FormInstance>()
   const loadingOptions = reactive<Record<string, boolean>>({})
   const asyncOptions = reactive<Record<string, OptionItem[]>>({})
+  const resolvedFieldProps = reactive<Record<string, Record<string, unknown>>>({})
+  const resolvedFieldVisible = reactive<Record<string, boolean>>({})
+  const resolvedFieldDisabled = reactive<Record<string, boolean>>({})
+  const resolveTokenMap = reactive<Record<string, number>>({})
+
   const model = reactive<Record<string, unknown>>({ ...initialModel })
 
   schema.fields.forEach((field) => {
@@ -62,24 +70,74 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   const rules = computed(() => normalizeRules(schema))
   const toolbar = computed(() => resolveToolbar(schema.toolbar))
 
-  async function loadFieldOptions(field: FormFieldSchema) {
-    if (typeof field.option !== 'object' || !field.option?.optionsLoader) return
-    loadingOptions[field.name] = true
-    try {
-      asyncOptions[field.name] = await field.option.optionsLoader(model)
-    } finally {
-      loadingOptions[field.name] = false
+  async function resolveFieldState(field: FormFieldSchema) {
+    const token = (resolveTokenMap[field.name] ?? 0) + 1
+    resolveTokenMap[field.name] = token
+
+    const currentModel = model as Record<string, unknown>
+
+    const visibleResult = typeof field.visible === 'function' ? await resolveMaybeAsync(field.visible(currentModel)) : field.visible
+    if (resolveTokenMap[field.name] !== token) return
+    resolvedFieldVisible[field.name] = visibleResult ?? true
+
+    const disabledResult = typeof field.disabled === 'function' ? await resolveMaybeAsync(field.disabled(currentModel)) : field.disabled
+    if (resolveTokenMap[field.name] !== token) return
+    resolvedFieldDisabled[field.name] = disabledResult ?? false
+
+    let optionProps: Record<string, unknown> = {}
+    if (field.option) {
+      optionProps = typeof field.option === 'function'
+        ? await resolveMaybeAsync(field.option(currentModel))
+        : { ...field.option }
+    }
+    if (resolveTokenMap[field.name] !== token) return
+
+    resolvedFieldProps[field.name] = optionProps
+
+    const directOptions = optionProps.options as OptionItem[] | undefined
+    if (Array.isArray(directOptions)) {
+      asyncOptions[field.name] = directOptions
+    }
+
+    const optionsLoader = optionProps.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
+    if (optionsLoader) {
+      loadingOptions[field.name] = true
+      try {
+        const options = await optionsLoader(currentModel)
+        if (resolveTokenMap[field.name] !== token) return
+        asyncOptions[field.name] = options
+      } finally {
+        loadingOptions[field.name] = false
+      }
     }
   }
 
-  async function preloadOptions() {
-    await Promise.all(schema.fields.map((field) => loadFieldOptions(field)))
+  async function refreshFieldStates() {
+    await Promise.all(schema.fields.map((field) => resolveFieldState(field)))
   }
 
+  async function preloadOptions() {
+    await refreshFieldStates()
+  }
+
+  watch(model, () => {
+    void refreshFieldStates()
+  }, { deep: true, immediate: true })
+
   function getFieldOptions(field: FormFieldSchema) {
-    if (asyncOptions[field.name]) return asyncOptions[field.name]
-    const props = resolveFieldProps(field, model)
-    return (props.options as OptionItem[] | undefined) || []
+    return asyncOptions[field.name] || []
+  }
+
+  function resolveFieldProps(field: FormFieldSchema, _model?: Record<string, unknown>) {
+    return resolvedFieldProps[field.name] || {}
+  }
+
+  function resolveFieldVisible(field: FormFieldSchema, _model?: Record<string, unknown>) {
+    return resolvedFieldVisible[field.name] ?? true
+  }
+
+  function resolveFieldDisabled(field: FormFieldSchema, _model?: Record<string, unknown>) {
+    return resolvedFieldDisabled[field.name] ?? false
   }
 
   const reset = () => {

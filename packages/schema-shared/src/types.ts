@@ -20,7 +20,11 @@ export interface OptionItem {
   disabled?: boolean
 }
 
-export type DynamicProps = Record<string, unknown> | ((model: Record<string, unknown>) => Record<string, unknown>)
+export type MaybePromise<T> = T | Promise<T>
+
+export type DynamicProps =
+  | Record<string, unknown>
+  | ((model: Record<string, unknown>) => MaybePromise<Record<string, unknown>>)
 
 export interface FormFieldSchema {
   label: string
@@ -36,8 +40,8 @@ export interface FormFieldSchema {
     options?: OptionItem[]
     optionsLoader?: (model: Record<string, unknown>) => Promise<OptionItem[]>
   }
-  visible?: boolean | ((model: Record<string, unknown>) => boolean)
-  disabled?: boolean | ((model: Record<string, unknown>) => boolean)
+  visible?: boolean | ((model: Record<string, unknown>) => MaybePromise<boolean>)
+  disabled?: boolean | ((model: Record<string, unknown>) => MaybePromise<boolean>)
 }
 
 export interface ToolbarAction {
