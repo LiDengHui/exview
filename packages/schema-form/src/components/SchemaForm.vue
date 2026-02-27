@@ -3,12 +3,15 @@ import { ElMessage } from 'element-plus'
 import { computed, onMounted } from 'vue'
 import { useSchemaForm } from '../useSchemaForm'
 import { resolveSchemaFormComponent } from '../componentRegistry'
+import { migrateFormSchema } from '@exview/schema-shared'
 import type { FormSchema } from '@exview/schema-shared'
 
 const props = defineProps<{
   schema: FormSchema
   model?: Record<string, unknown>
 }>()
+
+const runtimeSchema = computed(() => migrateFormSchema(props.schema))
 
 const emit = defineEmits<{
   submit: [model: Record<string, unknown>]
@@ -37,7 +40,7 @@ const {
   resetFields,
   submit,
   reset
-} = useSchemaForm(props.schema, props.model)
+} = useSchemaForm(runtimeSchema.value, props.model)
 
 onMounted(preloadOptions)
 
@@ -94,7 +97,7 @@ function fieldSignature(field: FormSchema['fields'][number], index: number) {
 }
 
 const renderedFields = computed(() => {
-  return props.schema.fields.map((field, index) => ({
+  return runtimeSchema.value.fields.map((field, index) => ({
     ...field,
     __id: fieldSignature(field, index)
   }))
@@ -224,7 +227,7 @@ async function resetForm() {
               <small v-if="field.extra">{{ field.extra }}</small>
             </slot>
           </div>
-          <div v-if="schema.debug" class="schema-debug">
+          <div v-if="runtimeSchema.debug" class="schema-debug">
             <small>trace: {{ fieldDebugMap[field.name] || 'pending' }}</small>
             <small v-if="fieldErrorMap[field.name]" class="schema-debug-error">error: {{ fieldErrorMap[field.name] }}</small>
           </div>

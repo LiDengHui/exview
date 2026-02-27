@@ -5,6 +5,7 @@ import { SchemaForm, SchemaToolbar } from '@exview/schema-form'
 import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
 
 const schemaText = ref(`{
+  "schemaVersion": 1,
   "fields": [
     {
       "label": "姓名",
@@ -39,7 +40,8 @@ const schemaText = ref(`{
         ]
       }
     }
-  ]
+  ],
+  "toolbar": "submit,reset"
 }`)
 
 const parseError = ref('')

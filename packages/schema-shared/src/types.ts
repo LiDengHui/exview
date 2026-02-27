@@ -79,6 +79,7 @@ export interface ToolbarAction {
 }
 
 export interface FormSchema {
+  schemaVersion?: number
   fields: FormFieldSchema[]
   initialValues?: Record<string, unknown>
   persistKey?: string
