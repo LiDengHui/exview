@@ -26,6 +26,11 @@ export type DynamicProps =
   | Record<string, unknown>
   | ((model: Record<string, unknown>) => MaybePromise<Record<string, unknown>>)
 
+export interface FormFieldTransform {
+  input?: (value: unknown, values: Record<string, unknown>) => MaybePromise<unknown>
+  output?: (value: unknown, values: Record<string, unknown>) => MaybePromise<unknown>
+}
+
 export interface FormFieldSchema {
   label: string
   name: string
@@ -35,6 +40,7 @@ export interface FormFieldSchema {
   row?: boolean
   rule?: string | Array<Record<string, unknown>>
   defaultValue?: unknown
+  transform?: FormFieldTransform
   option?: DynamicProps & {
     value?: unknown
     options?: OptionItem[]

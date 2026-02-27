@@ -6,4 +6,4 @@ export {
   resolveSchemaFormComponent
 } from './componentRegistry'
 export { registerSchemaRule, getSchemaRule, getSchemaRuleMap } from './ruleRegistry'
-export type { FormSchema, FormFieldSchema, ToolbarAction, OptionItem } from '@exview/schema-shared'
+export type { FormSchema, FormFieldSchema, FormFieldTransform, ToolbarAction, OptionItem } from '@exview/schema-shared'

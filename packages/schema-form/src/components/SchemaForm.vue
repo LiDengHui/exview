@@ -30,6 +30,7 @@ const {
   fieldDebugMap,
   setValues,
   getValues,
+  getOutputValues,
   resetFields,
   submit,
   reset
@@ -116,6 +117,7 @@ const fieldStateMap = computed(() => {
 defineExpose({
   setValues,
   getValues,
+  getOutputValues,
   resetFields,
   submit
 })

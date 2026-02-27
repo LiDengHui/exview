@@ -62,22 +62,30 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     ...initialModel
   }
 
-  const model = reactive<Record<string, unknown>>({ ...mergedInitialValues })
+  const model = reactive<Record<string, unknown>>({})
 
   schema.fields.forEach((field) => {
-    if (model[field.name] === undefined) {
-      const fallback = field.widget === 'checkbox-group' ? [] : ''
-      model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
-    }
+    const fallback = field.widget === 'checkbox-group' ? [] : ''
+    model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
     fieldErrorMap[field.name] = null
     fieldDebugMap[field.name] = ''
   })
 
-  const initialSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
+  let initialSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
   let previousSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
 
   const rules = computed(() => normalizeRules(schema))
   const toolbar = computed(() => resolveToolbar(schema.toolbar))
+
+  async function applyInputTransform(field: FormFieldSchema, value: unknown, values: Record<string, unknown>) {
+    if (!field.transform?.input) return value
+    return await field.transform.input(value, values)
+  }
+
+  async function applyOutputTransform(field: FormFieldSchema, value: unknown, values: Record<string, unknown>) {
+    if (!field.transform?.output) return value
+    return await field.transform.output(value, values)
+  }
 
   function emitChanges(nextValues: Record<string, unknown>) {
     const changedFields = Object.keys(nextValues).filter((key) => previousSnapshot[key] !== nextValues[key])
@@ -298,6 +306,11 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
   schema.fields.forEach(installFieldEffect)
 
+  void setValues(mergedInitialValues).then(() => {
+    initialSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
+    previousSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
+  })
+
   async function preloadOptions() {
     // watchers handle initial + reactive recompute
   }
@@ -318,20 +331,30 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     return resolvedFieldDisabled[field.name] ?? false
   }
 
-  function setValues(values: Record<string, unknown>) {
-    Object.keys(values).forEach((key) => {
-      model[key] = values[key]
-    })
+  async function setValues(values: Record<string, unknown>) {
+    const nextValues = { ...model, ...values }
+    for (const field of schema.fields) {
+      if (!(field.name in values)) continue
+      const transformed = await applyInputTransform(field, values[field.name], nextValues)
+      model[field.name] = transformed
+      nextValues[field.name] = transformed
+    }
   }
 
   function getValues() {
     return { ...model }
   }
 
-  const resetFields = () => {
-    Object.keys(initialSnapshot).forEach((key) => {
-      model[key] = initialSnapshot[key]
-    })
+  async function getOutputValues() {
+    const output = { ...model }
+    for (const field of schema.fields) {
+      output[field.name] = await applyOutputTransform(field, output[field.name], output)
+    }
+    return output
+  }
+
+  const resetFields = async () => {
+    await setValues(initialSnapshot)
     formRef.value?.clearValidate()
   }
 
@@ -343,7 +366,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
       throw new Error('表单校验失败')
     }
 
-    let payload = { ...model }
+    let payload = await getOutputValues()
     if (schema.validate) {
       payload = await schema.validate(payload, 'submit')
     }
@@ -366,6 +389,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     resolveFieldDisabled,
     setValues,
     getValues,
+    getOutputValues,
     resetFields,
     reset,
     submit
