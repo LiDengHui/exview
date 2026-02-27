@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import SchemaTable from '../schema/SchemaTable.vue'
-import type { TableSchema } from '../../schema/types'
+import { SchemaTable } from '@exview/schema-table'
+import type { TableSchema } from '@exview/schema-shared'
 import type { UserItem } from '../../mock/users'
 
 const props = defineProps<{ rows: UserItem[] }>()

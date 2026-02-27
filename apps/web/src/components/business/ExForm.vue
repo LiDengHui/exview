@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import SchemaForm from '../schema/SchemaForm.vue'
-import type { FormSchema } from '../../schema/types'
+import { SchemaForm } from '@exview/schema-form'
+import type { FormSchema } from '@exview/schema-shared'
 
 const emit = defineEmits<{ submit: [model: { name: string; age: number; phone: string; email: string }] }>()
 

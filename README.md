@@ -13,7 +13,10 @@
 
 ## 目录结构
 
-- `apps/web`: 主前端应用（Vue3 + Vite）
+- `apps/web`: 业务项目入口（Vue3 + Vite）
+- `packages/schema-shared`: schema 公共类型与工具
+- `packages/schema-form`: SchemaForm 组件与 useSchemaForm
+- `packages/schema-table`: SchemaTable 组件与 useSchemaTable
 - `docs/REFACTOR_PLAN.md`: 改造计划
 - `docs/REFACTOR_LOG.md`: 执行日志（逐步记录）
 - `src/` 等旧目录：当前保留为历史参考（后续按模块继续迁移）

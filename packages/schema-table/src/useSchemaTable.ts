@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import type { TableSchema } from '../schema/types'
+import type { TableSchema } from '@exview/schema-shared'
 
 export function useSchemaTable<T extends Record<string, unknown>>(schema: TableSchema<T>) {
   const rows = ref<T[]>([])

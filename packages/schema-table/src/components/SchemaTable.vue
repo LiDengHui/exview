@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
 import { onMounted } from 'vue'
-import { useSchemaTable } from '../../composables/useSchemaTable'
-import type { TableSchema } from '../../schema/types'
+import { useSchemaTable } from '../useSchemaTable'
+import type { TableSchema } from '@exview/schema-shared'
 
 const props = defineProps<{
   schema: TableSchema<T>

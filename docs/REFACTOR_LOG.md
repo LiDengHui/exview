@@ -161,3 +161,11 @@
 - 动作：通用组件 `SchemaForm/SchemaTable` 对应接入上述能力，保持现有配置兼容
 - 验证：`pnpm --filter @exview/web test`、`pnpm --filter @exview/web build` 均通过
 - 结果：配置表达力更接近成熟中后台方案，后续可继续演进成“字段注册表 + slot/render 扩展”模式
+
+### [11:34] Step 27 - Monorepo 多包改造（apps 入口 + packages 组件入口）
+- 动作：更新 `pnpm-workspace.yaml`，纳入 `packages/*`
+- 动作：新增 `packages/schema-shared`、`packages/schema-form`、`packages/schema-table` 三个子包及入口导出
+- 动作：将 schema 类型/公共工具迁移至 shared 包；Form/Table hooks 与组件分别迁移至独立包
+- 动作：`apps/web` 改为通过 workspace 依赖消费 `@exview/schema-*` 包，删除应用内重复实现
+- 验证：`pnpm install`、`pnpm --filter @exview/web test`、`pnpm --filter @exview/web build` 全通过
+- 结果：项目结构完成“应用层 vs 组件层”解耦，为独立 npm 发布和版本化管理打下基础

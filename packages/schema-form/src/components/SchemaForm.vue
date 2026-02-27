@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import { onMounted } from 'vue'
-import { useSchemaForm } from '../../composables/useSchemaForm'
-import type { FormSchema } from '../../schema/types'
+import { useSchemaForm } from '../useSchemaForm'
+import type { FormSchema } from '@exview/schema-shared'
 
 const props = defineProps<{
   schema: FormSchema

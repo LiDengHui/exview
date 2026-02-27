@@ -1,6 +1,7 @@
 import { computed, reactive, ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { FormFieldSchema, FormSchema, OptionItem, ToolbarAction } from '../schema/types'
+import type { FormFieldSchema, FormSchema, OptionItem, ToolbarAction } from '@exview/schema-shared'
+import { resolveFieldDisabled, resolveFieldProps, resolveFieldVisible } from '@exview/schema-shared'
 
 const defaultToolbarMap: Record<string, ToolbarAction> = {
   submit: { text: '提交', signal: 'submit', type: 'primary', validate: true },
@@ -44,23 +45,6 @@ function resolveToolbar(toolbar?: FormSchema['toolbar']): ToolbarAction[] {
     .filter(Boolean)
     .map((key) => defaultToolbarMap[key])
     .filter(Boolean)
-}
-
-function resolveFieldProps(field: FormFieldSchema, model: Record<string, unknown>) {
-  const option = field.option
-  if (!option) return {}
-  if (typeof option === 'function') return option(model)
-  return { ...option }
-}
-
-function resolveFieldVisible(field: FormFieldSchema, model: Record<string, unknown>) {
-  if (field.visible === undefined) return true
-  return typeof field.visible === 'function' ? field.visible(model) : field.visible
-}
-
-function resolveFieldDisabled(field: FormFieldSchema, model: Record<string, unknown>) {
-  if (field.disabled === undefined) return false
-  return typeof field.disabled === 'function' ? field.disabled(model) : field.disabled
 }
 
 export function useSchemaForm(schema: FormSchema, initialModel: Record<string, unknown> = {}) {

@@ -13,6 +13,15 @@ importers:
       '@element-plus/icons-vue':
         specifier: ^2.3.1
         version: 2.3.2(vue@3.5.29(typescript@5.8.3))
+      '@exview/schema-form':
+        specifier: workspace:*
+        version: link:../../packages/schema-form
+      '@exview/schema-shared':
+        specifier: workspace:*
+        version: link:../../packages/schema-shared
+      '@exview/schema-table':
+        specifier: workspace:*
+        version: link:../../packages/schema-table
       element-plus:
         specifier: ^2.11.1
         version: 2.13.2(vue@3.5.29(typescript@5.8.3))
@@ -68,6 +77,39 @@ importers:
       vue-tsc:
         specifier: ^3.0.6
         version: 3.2.5(typescript@5.8.3)
+
+  packages/schema-form:
+    dependencies:
+      '@exview/schema-shared':
+        specifier: workspace:*
+        version: link:../schema-shared
+      element-plus:
+        specifier: ^2.11.0
+        version: 2.13.2(vue@3.5.29(typescript@5.8.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.29(typescript@5.8.3)
+
+  packages/schema-shared:
+    dependencies:
+      element-plus:
+        specifier: ^2.11.0
+        version: 2.13.2(vue@3.5.29(typescript@5.8.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.29(typescript@5.8.3)
+
+  packages/schema-table:
+    dependencies:
+      '@exview/schema-shared':
+        specifier: workspace:*
+        version: link:../schema-shared
+      element-plus:
+        specifier: ^2.11.0
+        version: 2.13.2(vue@3.5.29(typescript@5.8.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.29(typescript@5.8.3)
 
 packages:
 
