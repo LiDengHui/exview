@@ -7,7 +7,8 @@ export const routes = [
   { path: '/menu', component: () => import('../views/MenuView.vue') },
   { path: '/toolbar', component: () => import('../views/ToolbarView.vue') },
   { path: '/schema-playground', component: () => import('../views/SchemaPlaygroundView.vue') },
-  { path: '/schema-examples', component: () => import('../views/SchemaExamplesView.vue') }
+  { path: '/schema-examples', component: () => import('../views/SchemaExamplesView.vue') },
+  { path: '/schema-dynamic', component: () => import('../views/SchemaDynamicView.vue') }
 ]
 
 export const router = createRouter({
