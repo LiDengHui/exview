@@ -143,3 +143,13 @@
 - 动作：e2e job 增加 Playwright Chromium 安装步骤
 - 结果：CI 可自动覆盖 unit/build/e2e 三层校验
 - 下一步：更新交付报告中的 CI 章节并继续监控优化项
+
+## 2026-02-27
+
+### [11:12] Step 25 - JSON Schema 驱动 Form/Table 重构（Vue3 composables）
+- 动作：在 `apps/web/src` 新增 schema 类型层（`schema/types.ts`）与示例（`schema/examples.ts`）
+- 动作：新增 `useSchemaForm`、`useSchemaTable` 两个 composable，抽离校验、工具栏动作、分页与数据刷新逻辑
+- 动作：新增通用组件 `components/schema/SchemaForm.vue`、`SchemaTable.vue`，用于基于 JSON Schema 渲染 Element Plus 表单/表格
+- 动作：重写 `components/business/ExForm.vue`、`ExTable.vue`，按旧版 `src/view/*` 的 schema 使用方式完成迁移承载
+- 验证：`pnpm --filter @exview/web test`、`pnpm --filter @exview/web build` 均通过
+- 结果：从“手写字段组件”回归为“schema 驱动 + hooks 复用”的实现路径，便于后续扩展动态字段与服务端 schema 下发

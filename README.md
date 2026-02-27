@@ -47,10 +47,10 @@ pnpm -r test
 - Batch C（细节修复与收尾）：进行中
 
 
-## Legacy 清理
+## Legacy 说明
 
-- 旧版 Vue2/webpack 目录与配置已移除（`build/`, `config/`, `src/`, `test/` 等）。
-- 当前仅保留现代化工程结构（`apps/web`）与迁移文档（`docs/*`）。
+- 旧版 Vue2 `src/` 目录当前保留作迁移参考（schema 结构、字段定义习惯可对照）。
+- 现代化主工程位于 `apps/web`，新开发以该目录为准。
 
 
 ## 环境变量

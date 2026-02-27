@@ -1,30 +1,50 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import SchemaForm from '../schema/SchemaForm.vue'
+import type { FormSchema } from '../../schema/types'
 
-const emit = defineEmits<{ submit: [model: {name:string;age:number;phone:string;email:string}] }>()
-const form = reactive({ name: '', age: 18, phone: '', email: '' })
+const emit = defineEmits<{ submit: [model: { name: string; age: number; phone: string; email: string }] }>()
 
-function onSubmit() {
-  emit('submit', { ...form })
+const random = Math.floor(Math.random() * 10)
+
+const schema: FormSchema = {
+  fields: [
+    {
+      label: '姓名',
+      rule: 'required',
+      name: 'name',
+      widget: 'input',
+      option: { placeholder: '姓名', value: `lidenghui${random}` }
+    },
+    {
+      label: '年龄',
+      rule: 'requiredNum',
+      widget: 'input-number',
+      name: 'age',
+      option: { max: 100, min: 0, placeholder: 'age', value: 32 }
+    },
+    {
+      label: '电话',
+      rule: 'required,phone',
+      widget: 'input',
+      name: 'phone',
+      option: { placeholder: '电话', value: `1320165668${random}` }
+    },
+    {
+      label: '邮箱',
+      rule: 'required,email',
+      widget: 'input',
+      name: 'email',
+      option: { placeholder: '邮箱', value: `337948903${random}@qq.com` }
+    }
+  ],
+  toolbar: 'submit,reset'
 }
 
-function reset() {
-  form.name = ''
-  form.age = 18
-  form.phone = ''
-  form.email = ''
+function handleSubmit(model: Record<string, unknown>) {
+  emit('submit', model as { name: string; age: number; phone: string; email: string })
 }
 </script>
 
 <template>
-  <el-form :model="form" label-width="100px">
-    <el-form-item label="姓名"><el-input v-model="form.name" /></el-form-item>
-    <el-form-item label="年龄"><el-input-number v-model="form.age" :min="1" :max="100" /></el-form-item>
-    <el-form-item label="电话"><el-input v-model="form.phone" /></el-form-item>
-    <el-form-item label="邮箱"><el-input v-model="form.email" /></el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="onSubmit">提交</el-button>
-      <el-button @click="reset">重置</el-button>
-    </el-form-item>
-  </el-form>
+  <SchemaForm :schema="schema" @submit="handleSubmit" />
 </template>
