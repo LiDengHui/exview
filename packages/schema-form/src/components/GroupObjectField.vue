@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { FormFieldSchema } from '@exview/schema-shared'
+import SchemaForm from './SchemaForm.vue'
 
 const props = withDefaults(defineProps<{
   modelValue?: Record<string, unknown>
+  itemSchema?: FormFieldSchema[]
 }>(), {
   modelValue: () => ({})
 })
@@ -62,14 +65,25 @@ function moveEntry(index: number, direction: -1 | 1) {
 
 <template>
   <div class="group-object">
-    <div v-for="([key, value], index) in entries" :key="`${key}-${index}`" class="object-row">
-      <el-input :model-value="key" placeholder="key" @update:model-value="(v) => updateKey(key, String(v ?? ''))" />
-      <el-input :model-value="String(value ?? '')" placeholder="value" @update:model-value="(v) => updateValue(key, String(v ?? ''))" />
-      <el-button link :disabled="index === 0" @click="moveEntry(index, -1)">上移</el-button>
-      <el-button link :disabled="index === entries.length - 1" @click="moveEntry(index, 1)">下移</el-button>
-      <el-button type="danger" link @click="removeEntry(key)">删除</el-button>
-    </div>
-    <el-button type="primary" link @click="addEntry">+ 添加字段</el-button>
+    <template v-if="itemSchema?.length">
+      <SchemaForm
+        :schema="{ fields: itemSchema, toolbar: [], onValuesChange: (values) => emit('update:modelValue', values) }"
+        :model="modelValue"
+        @submit="() => void 0"
+        @reset="() => void 0"
+      />
+    </template>
+
+    <template v-else>
+      <div v-for="([key, value], index) in entries" :key="`${key}-${index}`" class="object-row">
+        <el-input :model-value="key" placeholder="key" @update:model-value="(v) => updateKey(key, String(v ?? ''))" />
+        <el-input :model-value="String(value ?? '')" placeholder="value" @update:model-value="(v) => updateValue(key, String(v ?? ''))" />
+        <el-button link :disabled="index === 0" @click="moveEntry(index, -1)">上移</el-button>
+        <el-button link :disabled="index === entries.length - 1" @click="moveEntry(index, 1)">下移</el-button>
+        <el-button type="danger" link @click="removeEntry(key)">删除</el-button>
+      </div>
+      <el-button type="primary" link @click="addEntry">+ 添加字段</el-button>
+    </template>
   </div>
 </template>
 

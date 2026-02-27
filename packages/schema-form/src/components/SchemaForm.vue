@@ -28,6 +28,10 @@ const {
   resolveFieldDisabled,
   fieldErrorMap,
   fieldDebugMap,
+  isDirty,
+  isTouched,
+  isValid,
+  validateField,
   setValues,
   getValues,
   getOutputValues,
@@ -56,6 +60,11 @@ function isTextareaField(field: FormSchema['fields'][number]) {
 
 function resolveSpan(field: FormSchema['fields'][number]) {
   if (field.row) return 24
+  if (typeof field.span === 'object' && field.span) {
+    const md = Number(field.span.md ?? field.span.sm ?? field.span.xs ?? 12)
+    if (Number.isNaN(md)) return 12
+    return Math.min(24, Math.max(1, md))
+  }
   const span = Number(field.span ?? 12)
   if (Number.isNaN(span)) return 12
   return Math.min(24, Math.max(1, span))
@@ -119,7 +128,11 @@ defineExpose({
   getValues,
   getOutputValues,
   resetFields,
-  submit
+  submit,
+  validateField,
+  isValid,
+  isDirty,
+  isTouched
 })
 
 async function onAction(signal: string, validate?: boolean) {
@@ -150,18 +163,32 @@ async function onAction(signal: string, validate?: boolean) {
         <el-col
           v-if="fieldStateMap[field.__id]?.shouldRender"
           :span="resolveSpan(field)"
+          :xs="typeof field.span === 'object' ? field.span.xs : undefined"
+          :sm="typeof field.span === 'object' ? field.span.sm : undefined"
+          :md="typeof field.span === 'object' ? field.span.md : undefined"
+          :lg="typeof field.span === 'object' ? field.span.lg : undefined"
+          :xl="typeof field.span === 'object' ? field.span.xl : undefined"
           v-show="fieldStateMap[field.__id]?.visible"
         >
-          <el-form-item :label="field.label" :prop="field.name">
+          <el-form-item :prop="field.name">
+          <template #label>
+            <slot :name="`label-${field.name}`" :field="field" :model="model">
+              {{ field.label }}
+            </slot>
+          </template>
           <component
             :is="resolveSchemaFormComponent(field)"
             v-model="model[field.name]"
             :disabled="fieldStateMap[field.__id]?.disabled"
+            :item-schema="field.itemSchema"
             v-bind="fieldStateMap[field.__id]?.fieldProps"
             :placeholder="fieldStateMap[field.__id]?.placeholder"
             :type="isTextareaField(field) ? 'textarea' : undefined"
             :loading="isSelectField(field) ? loadingOptions[field.name] : undefined"
           >
+            <template #suffix>
+              <slot :name="`suffix-${field.name}`" :field="field" :model="model" />
+            </template>
             <template v-if="isSelectField(field)">
               <el-option
                 v-for="item in getFieldOptions(field)"
@@ -194,6 +221,12 @@ async function onAction(signal: string, validate?: boolean) {
               </el-checkbox>
             </template>
           </component>
+          <div v-if="field.help || field.extra || $slots[`extra-${field.name}`]" class="schema-extra">
+            <slot :name="`extra-${field.name}`" :field="field" :model="model">
+              <small v-if="field.help" class="schema-help">{{ field.help }}</small>
+              <small v-if="field.extra">{{ field.extra }}</small>
+            </slot>
+          </div>
           <div v-if="schema.debug" class="schema-debug">
             <small>trace: {{ fieldDebugMap[field.name] || 'pending' }}</small>
             <small v-if="fieldErrorMap[field.name]" class="schema-debug-error">error: {{ fieldErrorMap[field.name] }}</small>
@@ -214,15 +247,22 @@ async function onAction(signal: string, validate?: boolean) {
         {{ item.text }}
       </el-button>
     </el-form-item>
+
+    <slot name="footer" :model="model" :submit="submit" :reset="resetFields" />
   </el-form>
 </template>
 
 <style scoped>
+.schema-extra,
 .schema-debug {
   margin-top: 4px;
   display: flex;
   flex-direction: column;
   color: #909399;
+}
+
+.schema-help {
+  color: #606266;
 }
 
 .schema-debug-error {

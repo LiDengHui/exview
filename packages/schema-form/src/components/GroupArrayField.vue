@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { FormFieldSchema } from '@exview/schema-shared'
+import SchemaForm from './SchemaForm.vue'
 
 const props = withDefaults(defineProps<{
   modelValue?: unknown[]
   placeholder?: string
+  itemSchema?: FormFieldSchema[]
 }>(), {
   modelValue: () => []
 })
@@ -14,14 +17,15 @@ const emit = defineEmits<{
 
 const list = computed(() => (Array.isArray(props.modelValue) ? props.modelValue : []))
 
-function updateAt(index: number, value: string) {
+function updateAt(index: number, value: unknown) {
   const next = [...list.value]
   next[index] = value
   emit('update:modelValue', next)
 }
 
 function addItem() {
-  emit('update:modelValue', [...list.value, ''])
+  const nextDefault = props.itemSchema?.length ? {} : ''
+  emit('update:modelValue', [...list.value, nextDefault])
 }
 
 function removeItem(index: number) {
@@ -43,11 +47,26 @@ function moveItem(index: number, direction: -1 | 1) {
 <template>
   <div class="group-array">
     <div v-for="(item, index) in list" :key="index" class="array-row">
-      <el-input
-        :model-value="String(item ?? '')"
-        :placeholder="placeholder || `请输入第 ${index + 1} 项`"
-        @update:model-value="(v) => updateAt(index, String(v ?? ''))"
-      />
+      <template v-if="itemSchema?.length">
+        <SchemaForm
+          class="nested-form"
+          :schema="{
+            fields: itemSchema || [],
+            toolbar: [],
+            onValuesChange: (values) => updateAt(index, values)
+          }"
+          :model="(item as Record<string, unknown>)"
+          @submit="() => void 0"
+          @reset="() => void 0"
+        />
+      </template>
+      <template v-else>
+        <el-input
+          :model-value="String(item ?? '')"
+          :placeholder="placeholder || `请输入第 ${index + 1} 项`"
+          @update:model-value="(v) => updateAt(index, String(v ?? ''))"
+        />
+      </template>
       <el-button link :disabled="index === 0" @click="moveItem(index, -1)">上移</el-button>
       <el-button link :disabled="index === list.length - 1" @click="moveItem(index, 1)">下移</el-button>
       <el-button type="danger" link @click="removeItem(index)">删除</el-button>
@@ -63,7 +82,10 @@ function moveItem(index: number, direction: -1 | 1) {
 .array-row {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 8px;
+}
+.nested-form {
+  flex: 1;
 }
 </style>

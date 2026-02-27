@@ -1,5 +1,5 @@
 import type { FormRules } from 'element-plus'
-import type { Component } from 'vue'
+import type { Component, VNodeChild } from 'vue'
 
 export type SchemaWidget =
   | 'input'
@@ -31,16 +31,30 @@ export interface FormFieldTransform {
   output?: (value: unknown, values: Record<string, unknown>) => MaybePromise<unknown>
 }
 
+export interface ResponsiveSpan {
+  xs?: number
+  sm?: number
+  md?: number
+  lg?: number
+  xl?: number
+}
+
 export interface FormFieldSchema {
   label: string
   name: string
   widget?: SchemaWidget
   component?: string | Component
-  span?: number
+  span?: number | ResponsiveSpan
   row?: boolean
+  group?: string
   rule?: string | Array<Record<string, unknown>>
   defaultValue?: unknown
   transform?: FormFieldTransform
+  validator?: (value: unknown, values: Record<string, unknown>) => MaybePromise<true | string>
+  validatorDebounceMs?: number
+  itemSchema?: FormFieldSchema[]
+  help?: string
+  extra?: string
   option?: DynamicProps & {
     value?: unknown
     options?: OptionItem[]
@@ -66,7 +80,10 @@ export interface FormSchema {
   fields: FormFieldSchema[]
   toolbar?: string | ToolbarAction[]
   initialValues?: Record<string, unknown>
+  persistKey?: string
+  persistStorage?: 'local' | 'session'
   debug?: boolean
+  collapsedGroups?: string[]
   onValuesChange?: (values: Record<string, unknown>, changedField?: string) => void
   onFieldChange?: (field: string, value: unknown, values: Record<string, unknown>) => void
   validate?: (model: Record<string, unknown>, signal: string) => Promise<Record<string, unknown>> | Record<string, unknown>

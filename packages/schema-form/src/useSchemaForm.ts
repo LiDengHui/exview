@@ -11,15 +11,20 @@ const defaultToolbarMap: Record<string, ToolbarAction> = {
 function normalizeRules(schema: FormSchema): FormRules {
   const rules: FormRules = {}
   schema.fields.forEach((field) => {
-    if (!field.rule) return
+    const bucket: Record<string, unknown>[] = []
 
-    if (typeof field.rule === 'string') {
-      const names = field.rule.split(',').map((name) => name.trim()).filter(Boolean)
-      rules[field.name] = names.map((name) => getSchemaRule(name)).filter(Boolean)
-      return
+    if (field.rule) {
+      if (typeof field.rule === 'string') {
+        const names = field.rule.split(',').map((name) => name.trim()).filter(Boolean)
+        bucket.push(...names.map((name) => getSchemaRule(name)).filter(Boolean) as Record<string, unknown>[])
+      } else {
+        bucket.push(...field.rule)
+      }
     }
 
-    rules[field.name] = field.rule
+    if (bucket.length > 0) {
+      rules[field.name] = bucket
+    }
   })
   return rules
 }
@@ -44,6 +49,12 @@ function stableSerialize(value: unknown): string {
   return `{${Object.keys(record).sort().map((k) => `${k}:${stableSerialize(record[k])}`).join(',')}}`
 }
 
+function getPersistStorage(schema: FormSchema): Storage | null {
+  if (!schema.persistKey) return null
+  if (typeof window === 'undefined') return null
+  return schema.persistStorage === 'session' ? window.sessionStorage : window.localStorage
+}
+
 function sanitizeFieldProps(props: Record<string, unknown>) {
   const next = { ...props }
   delete next.value
@@ -63,25 +74,85 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   const resolveTokenMap = reactive<Record<string, number>>({})
   const optionsDebounceTimerMap = new Map<string, ReturnType<typeof setTimeout>>()
   const optionsCacheMap = new Map<string, OptionItem[]>()
+  const validatorDebounceTimerMap = new Map<string, ReturnType<typeof setTimeout>>()
+  const validatorTokenMap = reactive<Record<string, number>>({})
 
   const mergedInitialValues = {
     ...(schema.initialValues || {}),
     ...initialModel
   }
 
+  const persistedStorage = getPersistStorage(schema)
+  const persistedValues = (() => {
+    if (!persistedStorage || !schema.persistKey) return {}
+    try {
+      return JSON.parse(persistedStorage.getItem(schema.persistKey) || '{}') as Record<string, unknown>
+    } catch {
+      return {}
+    }
+  })()
+
   const model = reactive<Record<string, unknown>>({})
+  const touchedMap = reactive<Record<string, boolean>>({})
+  const dirtyMap = reactive<Record<string, boolean>>({})
 
   schema.fields.forEach((field) => {
     const fallback = field.widget === 'checkbox-group' ? [] : ''
     model[field.name] = field.defaultValue ?? (typeof field.option === 'object' ? field.option?.value : undefined) ?? fallback
+    touchedMap[field.name] = false
+    dirtyMap[field.name] = false
     fieldErrorMap[field.name] = null
     fieldDebugMap[field.name] = ''
   })
 
+  Object.assign(model, mergedInitialValues, persistedValues)
+
   let initialSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
   let previousSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
 
-  const rules = computed(() => normalizeRules(schema))
+  const rules = computed(() => {
+    const base = normalizeRules(schema)
+
+    schema.fields.forEach((field) => {
+      if (!field.validator) return
+      const current = (base[field.name] as Record<string, unknown>[] | undefined) || []
+      current.push({
+        trigger: 'change',
+        asyncValidator: async (_rule: unknown, value: unknown) => {
+          const delay = Math.max(0, Number(field.validatorDebounceMs ?? 0))
+          const oldTimer = validatorDebounceTimerMap.get(field.name)
+          if (oldTimer) clearTimeout(oldTimer)
+
+          const token = (validatorTokenMap[field.name] ?? 0) + 1
+          validatorTokenMap[field.name] = token
+
+          const result = await new Promise<true | string>((resolve) => {
+            const run = async () => {
+              const resp = await field.validator!(value, model as Record<string, unknown>)
+              if (validatorTokenMap[field.name] !== token) return resolve(true)
+              resolve(resp)
+            }
+            if (delay > 0) {
+              const timer = setTimeout(() => {
+                validatorDebounceTimerMap.delete(field.name)
+                void run()
+              }, delay)
+              validatorDebounceTimerMap.set(field.name, timer)
+            } else {
+              void run()
+            }
+          })
+
+          if (result !== true) {
+            throw new Error(result || `${field.label} 校验失败`)
+          }
+        }
+      })
+      base[field.name] = current
+    })
+
+    return base
+  })
   const toolbar = computed(() => resolveToolbar(schema.toolbar))
 
   async function applyInputTransform(field: FormFieldSchema, value: unknown, values: Record<string, unknown>) {
@@ -110,7 +181,19 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   watch(
     model,
     () => {
-      emitChanges(model as Record<string, unknown>)
+      const current = model as Record<string, unknown>
+      Object.keys(current).forEach((key) => {
+        if (initialSnapshot[key] !== current[key]) {
+          dirtyMap[key] = true
+          touchedMap[key] = true
+        }
+      })
+
+      emitChanges(current)
+
+      if (persistedStorage && schema.persistKey) {
+        persistedStorage.setItem(schema.persistKey, JSON.stringify(current))
+      }
     },
     { deep: true }
   )
@@ -353,6 +436,29 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     return { ...model }
   }
 
+  const isDirty = computed(() => Object.values(dirtyMap).some(Boolean))
+  const isTouched = computed(() => Object.values(touchedMap).some(Boolean))
+
+  async function validateField(field: string) {
+    if (!formRef.value) return false
+    try {
+      await formRef.value.validateField(field)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  async function isValid() {
+    if (!formRef.value) return false
+    try {
+      await formRef.value.validate()
+      return true
+    } catch {
+      return false
+    }
+  }
+
   async function getOutputValues() {
     const output = { ...model }
     for (const field of schema.fields) {
@@ -363,6 +469,10 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
   const resetFields = async () => {
     await setValues(initialSnapshot)
+    Object.keys(dirtyMap).forEach((k) => {
+      dirtyMap[k] = false
+      touchedMap[k] = false
+    })
     formRef.value?.clearValidate()
   }
 
@@ -390,6 +500,11 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     fieldLoadingMap: loadingOptions,
     fieldErrorMap,
     fieldDebugMap,
+    touchedMap,
+    dirtyMap,
+    isDirty,
+    isTouched,
+    isValid,
     preloadOptions,
     getFieldOptions,
     resolveFieldProps,
@@ -398,6 +513,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     setValues,
     getValues,
     getOutputValues,
+    validateField,
     resetFields,
     reset,
     submit

@@ -12,6 +12,7 @@
           <el-menu-item index="/schema-playground">Schema编辑器</el-menu-item>
           <el-menu-item index="/schema-examples">Schema用例</el-menu-item>
           <el-menu-item index="/schema-dynamic">动态组件用例</el-menu-item>
+          <el-menu-item index="/schema-advanced">高级能力用例</el-menu-item>
         </el-menu>
       </el-aside>
       <el-main>
