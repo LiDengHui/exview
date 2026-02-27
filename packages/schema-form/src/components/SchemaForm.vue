@@ -125,6 +125,19 @@ const fieldStateMap = computed(() => {
   return map
 })
 
+const debugSnapshot = computed(() => ({
+  model: getValues(),
+  linkMap: renderedFields.value.map((field) => ({
+    field: field.name,
+    deps: field.deps || 'auto',
+    visibleWhen: field.visibleWhen ? 'on' : 'off',
+    disabledWhen: field.disabledWhen ? 'on' : 'off',
+    requiredWhen: field.requiredWhen ? 'on' : 'off',
+    trace: fieldDebugMap[field.name] || ''
+  })),
+  errors: fieldErrorMap
+}))
+
 defineExpose({
   setValues,
   getValues,
@@ -237,6 +250,12 @@ async function resetForm() {
     </el-row>
 
     <slot name="footer" :model="model" :submit="submitForm" :reset="resetForm" />
+
+    <el-collapse v-if="runtimeSchema.debug" class="schema-debug-panel">
+      <el-collapse-item title="Schema Debug Panel" name="schema-debug">
+        <pre class="schema-debug-json">{{ JSON.stringify(debugSnapshot, null, 2) }}</pre>
+      </el-collapse-item>
+    </el-collapse>
   </el-form>
 </template>
 
@@ -255,5 +274,18 @@ async function resetForm() {
 
 .schema-debug-error {
   color: #f56c6c;
+}
+
+.schema-debug-panel {
+  margin-top: 12px;
+}
+
+.schema-debug-json {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f5f7fa;
+  padding: 10px;
+  border-radius: 6px;
 }
 </style>
