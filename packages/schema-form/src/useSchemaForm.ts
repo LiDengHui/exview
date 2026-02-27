@@ -1,4 +1,4 @@
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watchEffect } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { FormFieldSchema, FormSchema, OptionItem, ToolbarAction } from '@exview/schema-shared'
 
@@ -46,10 +46,6 @@ function resolveToolbar(toolbar?: FormSchema['toolbar']): ToolbarAction[] {
     .filter(Boolean)
 }
 
-async function resolveMaybeAsync<T>(value: T | Promise<T>): Promise<T> {
-  return await value
-}
-
 export function useSchemaForm(schema: FormSchema, initialModel: Record<string, unknown> = {}) {
   const formRef = ref<FormInstance>()
   const loadingOptions = reactive<Record<string, boolean>>({})
@@ -70,59 +66,117 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   const rules = computed(() => normalizeRules(schema))
   const toolbar = computed(() => resolveToolbar(schema.toolbar))
 
-  async function resolveFieldState(field: FormFieldSchema) {
-    const token = (resolveTokenMap[field.name] ?? 0) + 1
-    resolveTokenMap[field.name] = token
+  function applyAsync<T>(
+    fieldName: string,
+    token: number,
+    task: T | Promise<T>,
+    apply: (value: T) => void,
+    onFinally?: () => void
+  ) {
+    Promise.resolve(task)
+      .then((value) => {
+        if (resolveTokenMap[fieldName] !== token) return
+        apply(value)
+      })
+      .catch(() => {
+        // keep previous value on async error
+      })
+      .finally(() => {
+        if (resolveTokenMap[fieldName] !== token) return
+        onFinally?.()
+      })
+  }
 
-    const currentModel = model as Record<string, unknown>
+  function installFieldEffect(field: FormFieldSchema) {
+    watchEffect(() => {
+      const token = (resolveTokenMap[field.name] ?? 0) + 1
+      resolveTokenMap[field.name] = token
 
-    const visibleResult = typeof field.visible === 'function' ? await resolveMaybeAsync(field.visible(currentModel)) : field.visible
-    if (resolveTokenMap[field.name] !== token) return
-    resolvedFieldVisible[field.name] = visibleResult ?? true
+      const currentModel = model as Record<string, unknown>
 
-    const disabledResult = typeof field.disabled === 'function' ? await resolveMaybeAsync(field.disabled(currentModel)) : field.disabled
-    if (resolveTokenMap[field.name] !== token) return
-    resolvedFieldDisabled[field.name] = disabledResult ?? false
-
-    let optionProps: Record<string, unknown> = {}
-    if (field.option) {
-      optionProps = typeof field.option === 'function'
-        ? await resolveMaybeAsync(field.option(currentModel))
-        : { ...field.option }
-    }
-    if (resolveTokenMap[field.name] !== token) return
-
-    resolvedFieldProps[field.name] = optionProps
-
-    const directOptions = optionProps.options as OptionItem[] | undefined
-    if (Array.isArray(directOptions)) {
-      asyncOptions[field.name] = directOptions
-    }
-
-    const optionsLoader = optionProps.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
-    if (optionsLoader) {
-      loadingOptions[field.name] = true
-      try {
-        const options = await optionsLoader(currentModel)
-        if (resolveTokenMap[field.name] !== token) return
-        asyncOptions[field.name] = options
-      } finally {
-        loadingOptions[field.name] = false
+      if (field.visible === undefined) {
+        resolvedFieldVisible[field.name] = true
+      } else if (typeof field.visible === 'function') {
+        applyAsync(field.name, token, field.visible(currentModel), (v) => {
+          resolvedFieldVisible[field.name] = v ?? true
+        })
+      } else {
+        resolvedFieldVisible[field.name] = field.visible
       }
-    }
+
+      if (field.disabled === undefined) {
+        resolvedFieldDisabled[field.name] = false
+      } else if (typeof field.disabled === 'function') {
+        applyAsync(field.name, token, field.disabled(currentModel), (v) => {
+          resolvedFieldDisabled[field.name] = v ?? false
+        })
+      } else {
+        resolvedFieldDisabled[field.name] = field.disabled
+      }
+
+      if (!field.option) {
+        resolvedFieldProps[field.name] = {}
+        return
+      }
+
+      if (typeof field.option === 'function') {
+        applyAsync(field.name, token, field.option(currentModel), (props) => {
+          resolvedFieldProps[field.name] = props || {}
+
+          const directOptions = props?.options as OptionItem[] | undefined
+          if (Array.isArray(directOptions)) {
+            asyncOptions[field.name] = directOptions
+          }
+
+          const optionsLoader = props?.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
+          if (optionsLoader) {
+            loadingOptions[field.name] = true
+            applyAsync(
+              field.name,
+              token,
+              optionsLoader(currentModel),
+              (options) => {
+                asyncOptions[field.name] = options || []
+              },
+              () => {
+                loadingOptions[field.name] = false
+              }
+            )
+          }
+        })
+      } else {
+        const props = { ...field.option }
+        resolvedFieldProps[field.name] = props
+
+        const directOptions = props.options as OptionItem[] | undefined
+        if (Array.isArray(directOptions)) {
+          asyncOptions[field.name] = directOptions
+        }
+
+        const optionsLoader = props.optionsLoader as ((m: Record<string, unknown>) => Promise<OptionItem[]>) | undefined
+        if (optionsLoader) {
+          loadingOptions[field.name] = true
+          applyAsync(
+            field.name,
+            token,
+            optionsLoader(currentModel),
+            (options) => {
+              asyncOptions[field.name] = options || []
+            },
+            () => {
+              loadingOptions[field.name] = false
+            }
+          )
+        }
+      }
+    })
   }
 
-  async function refreshFieldStates() {
-    await Promise.all(schema.fields.map((field) => resolveFieldState(field)))
-  }
+  schema.fields.forEach(installFieldEffect)
 
   async function preloadOptions() {
-    await refreshFieldStates()
+    // watchEffect already handles initial + reactive recompute
   }
-
-  watch(model, () => {
-    void refreshFieldStates()
-  }, { deep: true, immediate: true })
 
   function getFieldOptions(field: FormFieldSchema) {
     return asyncOptions[field.name] || []
