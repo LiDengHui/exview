@@ -25,12 +25,17 @@ pnpm release:beta:check
 
 ## 4) 发布
 ```bash
-cd packages/schema-shared && npm publish --tag beta --access public
-cd ../schema-form && npm publish --tag beta --access public
-cd ../schema-table && npm publish --tag beta --access public
+# 参数化发布（推荐）
+bash scripts/release-publish.sh --tag beta
+
+# dry-run 预演（不真正发布）
+bash scripts/release-publish.sh --tag beta --dry-run
+
+# 无交互发布（CI/自动化）
+bash scripts/release-publish.sh --tag rc --yes
 ```
 
-> rc / stable 时把 `--tag beta` 换成对应 tag。
+> 可选 tag：`beta` / `rc` / `latest`。
 
 ## 5) 打 tag
 ```bash
@@ -39,3 +44,8 @@ git commit -m "release: 0.1.1-beta.0"
 git tag v0.1.1-beta.0
 git push && git push --tags
 ```
+
+
+## Rollback
+
+- 回滚指南：`docs/RELEASE_ROLLBACK.md`

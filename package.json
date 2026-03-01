@@ -12,6 +12,8 @@
     "release:version": "node scripts/bump-version.mjs",
     "typecheck": "pnpm -r --if-present typecheck",
     "release:beta:check:dry": "bash scripts/release-beta.sh --dry-run",
-    "release:notes:draft": "node scripts/release-notes-draft.mjs"
+    "release:notes:draft": "node scripts/release-notes-draft.mjs",
+    "release:publish": "bash scripts/release-publish.sh",
+    "release:publish:dry": "bash scripts/release-publish.sh --tag beta --dry-run"
   }
 }
