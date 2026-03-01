@@ -57,7 +57,7 @@ const schema: FormSchema = {
       deps: ['username'],
       option: {
         optionsCacheKey: 'city-options',
-        optionsCacheParams: (model) => ({ u: model.username }),
+        optionsCacheParams: (model: Record<string, unknown>) => ({ u: model.username }),
         optionsLoader: async () => {
           await new Promise((r) => setTimeout(r, 400))
           return [

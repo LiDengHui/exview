@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  web:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,12 +16,26 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @exview/web test
-      - run: pnpm --filter @exview/web build
+      - run: pnpm --filter @exview/web lint
+      - run: pnpm test
+      - run: pnpm typecheck
+
+  build:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
 
   web-e2e:
     runs-on: ubuntu-latest
-    needs: web
+    needs: build
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

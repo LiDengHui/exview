@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:ui": "vitest",
     "lint": "eslint . --ext .ts,.vue",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",

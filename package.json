@@ -9,6 +9,7 @@
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "release:beta:check": "bash scripts/release-beta.sh",
-    "release:version": "node scripts/bump-version.mjs"
+    "release:version": "node scripts/bump-version.mjs",
+    "typecheck": "pnpm -r --if-present typecheck"
   }
 }

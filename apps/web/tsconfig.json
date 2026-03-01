@@ -6,12 +6,14 @@
       "vite/client",
       "vitest/globals"
     ],
-    "noEmit": true
+    "noEmit": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.vue",
     "src/**/*.d.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "config/**/*.ts"
   ]
 }

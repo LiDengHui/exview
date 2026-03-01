@@ -9,7 +9,7 @@ const emit = defineEmits<{ remove: [id: number] }>()
 
 const tableRef = ref<{ refresh: () => Promise<void> } | null>(null)
 
-const schema: TableSchema<UserItem> = {
+const schema: TableSchema<Record<string, unknown>> = {
   localPage: true,
   pageSize: 10,
   rowKey: 'id',
@@ -19,7 +19,7 @@ const schema: TableSchema<UserItem> = {
     { key: 'phone', title: 'Phone' },
     { key: 'email', title: 'Email' }
   ],
-  data: () => Promise.resolve(props.rows)
+  data: () => Promise.resolve(props.rows as unknown as Record<string, unknown>[])
 }
 
 watch(

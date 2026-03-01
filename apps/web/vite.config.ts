@@ -17,7 +17,7 @@ export default defineConfig({
       eslintrc: { enabled: false }
     }),
     Components({
-      resolvers: [ElementPlusResolver({ importStyle: false })],
+      resolvers: [ElementPlusResolver({ importStyle: 'css' })],
       dts: 'src/components.d.ts'
     })
   ],
@@ -26,7 +26,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vue: ['vue', 'vue-router', 'pinia']
+          'vue-core': ['vue', 'vue-router', 'pinia'],
+          'element-plus': ['element-plus', '@element-plus/icons-vue'],
+          'schema-runtime': ['@exview/schema-form', '@exview/schema-table', '@exview/schema-shared']
         }
       }
     },
