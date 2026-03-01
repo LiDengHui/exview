@@ -49,3 +49,22 @@ git push && git push --tags
 ## Rollback
 
 - 回滚指南：`docs/RELEASE_ROLLBACK.md`
+
+
+## 一键编排（推荐）
+
+```bash
+# 只预演不执行发布
+bash scripts/release-all.sh --version 0.1.2-beta.0 --tag beta --dry-run
+
+# 正式发布（含版本提升、预检查、发布、打tag）
+bash scripts/release-all.sh --version 0.1.2-beta.0 --tag beta --yes
+```
+
+编排步骤：
+1. bump 包版本并安装依赖
+2. 生成 `tmp/RELEASE_NOTES_DRAFT.md`
+3. 执行 release precheck
+4. 执行参数化 publish
+5. 提交 release commit
+6. 打 git tag

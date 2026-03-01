@@ -69,3 +69,4 @@ pnpm -r test
 - 规则注册与优先级说明：`docs/RULE_REGISTRY.md`
 
 - 性能可观测说明：`docs/PERF_OBSERVABILITY.md`
+- 发布操作手册：`docs/RELEASE_RUNBOOK.md`

@@ -14,6 +14,8 @@
     "release:beta:check:dry": "bash scripts/release-beta.sh --dry-run",
     "release:notes:draft": "node scripts/release-notes-draft.mjs",
     "release:publish": "bash scripts/release-publish.sh",
-    "release:publish:dry": "bash scripts/release-publish.sh --tag beta --dry-run"
+    "release:publish:dry": "bash scripts/release-publish.sh --tag beta --dry-run",
+    "release:all": "bash scripts/release-all.sh",
+    "release:all:dry": "bash scripts/release-all.sh --version 0.0.0-beta.0 --tag beta --dry-run"
   }
 }
