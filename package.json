@@ -17,5 +17,11 @@
     "release:publish:dry": "bash scripts/release-publish.sh --tag beta --dry-run",
     "release:all": "bash scripts/release-all.sh",
     "release:all:dry": "bash scripts/release-all.sh --version 0.0.0-beta.0 --tag beta --dry-run"
+  },
+  "pnpm": {
+    "overrides": {
+      "editorconfig": "1.0.7",
+      "minimatch": "9.0.7"
+    }
   }
 }
