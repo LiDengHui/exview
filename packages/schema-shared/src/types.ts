@@ -107,6 +107,7 @@ export interface FormSchema {
   onValuesChange?: (values: Record<string, unknown>, changedField?: string) => void
   onFieldChange?: (field: string, value: unknown, values: Record<string, unknown>) => void
   validate?: (model: Record<string, unknown>, signal: string) => Promise<Record<string, unknown>> | Record<string, unknown>
+  ruleMap?: Record<string, Record<string, unknown>>
 }
 
 export interface TableColumnSchema<T extends Record<string, unknown> = Record<string, unknown>> {

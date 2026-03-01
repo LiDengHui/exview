@@ -12,6 +12,6 @@ export {
   getSchemaFieldConfig,
   getSchemaFieldRegistry
 } from './fieldRegistry'
-export { registerSchemaRule, getSchemaRule, getSchemaRuleMap } from './ruleRegistry'
+export { registerSchemaRule, getSchemaRule, getSchemaRuleMap, getRuntimeSchemaRuleMap, clearRuntimeSchemaRules } from './ruleRegistry'
 export type { FieldRegistryConfig, FieldCapability } from './fieldRegistry'
 export type { FormSchema, FormFieldSchema, FormFieldTransform, FieldCondition, ToolbarAction, OptionItem } from '@exview/schema-shared'

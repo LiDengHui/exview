@@ -53,3 +53,10 @@ test('advanced page exposes field loading/error status text', async ({ page }) =
 
   await expect(status).toContainText('city')
 })
+
+test('runtime registered rule should validate username as required', async ({ page }) => {
+  await page.goto('/schema-advanced')
+  await page.locator('input[placeholder*="输入 admin 会报占用"]').fill('')
+  await page.getByRole('button', { name: '校验用户名字段' }).click()
+  await expect(page.locator('.el-message')).toContainText('校验失败')
+})

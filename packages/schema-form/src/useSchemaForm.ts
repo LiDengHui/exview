@@ -24,14 +24,14 @@ function normalizeRules(schema: FormSchema, values: Record<string, unknown>, req
     if (field.rule) {
       if (typeof field.rule === 'string') {
         const names = field.rule.split(',').map((name) => name.trim()).filter(Boolean)
-        bucket.push(...names.map((name) => getSchemaRule(name)).filter(Boolean) as Record<string, unknown>[])
+        bucket.push(...names.map((name) => getSchemaRule(name, schema.ruleMap)).filter(Boolean) as Record<string, unknown>[])
       } else {
         bucket.push(...field.rule)
       }
     } else {
       const fieldName = typeof field.component === 'string' ? field.component : field.widget
       const defaultRuleNames = getSchemaFieldConfig(fieldName)?.defaultRuleNames || []
-      bucket.push(...defaultRuleNames.map((name) => getSchemaRule(name)).filter(Boolean) as Record<string, unknown>[])
+      bucket.push(...defaultRuleNames.map((name) => getSchemaRule(name, schema.ruleMap)).filter(Boolean) as Record<string, unknown>[])
     }
 
     if (requiredWhenMap[field.name]) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { SchemaForm, SchemaToolbar } from '@exview/schema-form'
+import { SchemaForm, SchemaToolbar, registerSchemaRule } from '@exview/schema-form'
 import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
 
 const formRef = ref<{
@@ -25,6 +25,8 @@ const fieldStatusText = computed(() => {
   return `loading=${JSON.stringify(formRef.value.fieldLoadingMap)}, errors=${JSON.stringify(formRef.value.fieldErrorMap)}`
 })
 
+registerSchemaRule('strongRequired', { required: true, message: '该字段必须填写(运行时规则)', trigger: 'blur' }, 'runtime')
+
 const toolbarItems: ToolbarAction[] = [
   { text: '提交', signal: 'submit', type: 'primary' },
   { text: '重置', signal: 'reset', type: 'default' }
@@ -38,7 +40,7 @@ const schema: FormSchema = {
       label: '用户名(异步校验)',
       name: 'username',
       widget: 'input',
-      rule: 'required',
+      rule: 'strongRequired',
       validatorDebounceMs: 300,
       validator: async (value) => {
         await new Promise((r) => setTimeout(r, 300))
