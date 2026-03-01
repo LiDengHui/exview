@@ -40,3 +40,16 @@ test('visibleMode if should mount/unmount field by DSL condition', async ({ page
   await fillByLabel(page, '用户名', 'guest')
   await expect(secretInput).toHaveCount(0)
 })
+
+test('advanced page exposes field loading/error status text', async ({ page }) => {
+  await page.goto('/schema-advanced')
+
+  const status = page.getByTestId('field-status')
+  await expect(status).toContainText('loading=')
+  await expect(status).toContainText('errors=')
+
+  const usernameInput = page.locator('input[placeholder*="输入 admin 会报占用"]')
+  await usernameInput.fill('status-user')
+
+  await expect(status).toContainText('city')
+})

@@ -150,7 +150,9 @@ defineExpose({
   validateField,
   isValid,
   isDirty,
-  isTouched
+  isTouched,
+  fieldLoadingMap: loadingOptions,
+  fieldErrorMap
 })
 
 async function submitForm() {

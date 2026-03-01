@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { SchemaForm, SchemaToolbar } from '@exview/schema-form'
 import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
@@ -13,9 +13,17 @@ const formRef = ref<{
   isTouched: { value: boolean }
   isValid: () => Promise<boolean>
   validateField: (field: string) => Promise<boolean>
+  fieldLoadingMap: Record<string, boolean>
+  fieldErrorMap: Record<string, string | null>
 } | null>(null)
 
 const stateInfo = ref('dirty=false, touched=false')
+
+
+const fieldStatusText = computed(() => {
+  if (!formRef.value) return 'loading={}, errors={}'
+  return `loading=${JSON.stringify(formRef.value.fieldLoadingMap)}, errors=${JSON.stringify(formRef.value.fieldErrorMap)}`
+})
 
 const toolbarItems: ToolbarAction[] = [
   { text: '提交', signal: 'submit', type: 'primary' },
@@ -144,6 +152,7 @@ async function onToolbarAction(item: ToolbarAction) {
           <el-button @click="showOutput">查看 output 值</el-button>
           <el-button @click="checkUsername">校验用户名字段</el-button>
           <span>{{ stateInfo }}</span>
+          <span data-testid="field-status">{{ fieldStatusText }}</span>
         </el-space>
       </template>
     </SchemaForm>
