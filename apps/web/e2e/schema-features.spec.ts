@@ -27,3 +27,16 @@ test('persistKey restores values after reload in advanced page', async ({ page }
   await page.reload()
   await expect(page.locator('input[placeholder*="输入 admin 会报占用"]')).toHaveValue('persist-user')
 })
+
+test('visibleMode if should mount/unmount field by DSL condition', async ({ page }) => {
+  await page.goto('/schema-dynamic')
+
+  const secretInput = page.locator('input[placeholder*="visibleMode=if"]')
+  await expect(secretInput).toHaveCount(0)
+
+  await fillByLabel(page, '用户名', 'admin')
+  await expect(secretInput).toHaveCount(1)
+
+  await fillByLabel(page, '用户名', 'guest')
+  await expect(secretInput).toHaveCount(0)
+})

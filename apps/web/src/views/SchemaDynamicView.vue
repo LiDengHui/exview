@@ -97,6 +97,16 @@ const schema = computed<FormSchema>(() => ({
       }
     },
     {
+      label: '管理员密钥(visibleMode=if)',
+      name: 'adminSecret',
+      widget: 'input',
+      row: true,
+      deps: ['username'],
+      visibleWhen: { field: 'username', equals: 'admin' },
+      visibleMode: 'if',
+      option: { placeholder: '仅 admin 时渲染（visibleMode=if）' }
+    },
+    {
       label: '管理员备注(内部触发)',
       name: 'adminNote',
       widget: 'textarea',

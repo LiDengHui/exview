@@ -135,7 +135,8 @@ const debugSnapshot = computed(() => ({
     requiredWhen: field.requiredWhen ? 'on' : 'off',
     trace: fieldDebugMap[field.name] || ''
   })),
-  errors: fieldErrorMap
+  errors: fieldErrorMap,
+  loading: loadingOptions
 }))
 
 defineExpose({
