@@ -76,6 +76,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
   const resolvedFieldDisabled = reactive<Record<string, boolean>>({})
   const requiredWhenMap = reactive<Record<string, boolean>>({})
   const fieldDebugMap = reactive<Record<string, string>>({})
+  const fieldPerfMap = reactive<Record<string, { resolverMs: number; optionsMs: number; validatorMs: number; resolverCount: number; optionsCount: number; validatorCount: number }>>({})
   const resolveTokenMap = reactive<Record<string, number>>({})
   const optionsDebounceTimerMap = new Map<string, ReturnType<typeof setTimeout>>()
   const optionsCacheMap = new Map<string, OptionItem[]>()
@@ -108,6 +109,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     dirtyMap[field.name] = false
     fieldErrorMap[field.name] = null
     fieldDebugMap[field.name] = ''
+    fieldPerfMap[field.name] = { resolverMs: 0, optionsMs: 0, validatorMs: 0, resolverCount: 0, optionsCount: 0, validatorCount: 0 }
     requiredWhenMap[field.name] = false
   })
 
@@ -115,6 +117,23 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
   let initialSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
   let previousSnapshot = JSON.parse(JSON.stringify(model)) as Record<string, unknown>
+
+
+  function markFieldPerf(fieldName: string, kind: 'resolver' | 'options' | 'validator', duration: number) {
+    const perf = fieldPerfMap[fieldName]
+    if (!perf) return
+    const safe = Math.max(0, Math.round(duration))
+    if (kind === 'resolver') {
+      perf.resolverMs += safe
+      perf.resolverCount += 1
+    } else if (kind === 'options') {
+      perf.optionsMs += safe
+      perf.optionsCount += 1
+    } else {
+      perf.validatorMs += safe
+      perf.validatorCount += 1
+    }
+  }
 
   const rules = computed(() => {
     const base = normalizeRules(schema, model as Record<string, unknown>, requiredWhenMap)
@@ -134,7 +153,9 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
 
           const result = await new Promise<true | string>((resolve) => {
             const run = async () => {
+              const started = performance.now()
               const resp = await field.validator!(value, model as Record<string, unknown>)
+              markFieldPerf(field.name, 'validator', performance.now() - started)
               if (validatorTokenMap[field.name] !== token) return resolve(true)
               resolve(resp)
             }
@@ -208,7 +229,8 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     token: number,
     task: T | Promise<T>,
     apply: (value: T) => void,
-    onFinally?: () => void
+    onFinally?: () => void,
+    perfKind: 'resolver' | 'options' = 'resolver'
   ) {
     const start = performance.now()
     Promise.resolve(task)
@@ -224,6 +246,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
       .finally(() => {
         if (resolveTokenMap[fieldName] !== token) return
         const duration = Math.round(performance.now() - start)
+        markFieldPerf(fieldName, perfKind, duration)
         fieldDebugMap[fieldName] = `deps=${(schema.fields.find((f) => f.name === fieldName)?.deps || []).join(',') || 'auto'}; cost=${duration}ms`
         onFinally?.()
       })
@@ -274,6 +297,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
           () => {
             loadingOptions[field.name] = false
           }
+          , 'options'
         )
       }
 
@@ -305,7 +329,8 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
         },
         () => {
           loadingOptions[field.name] = false
-        }
+        },
+        'options'
       )
     }
 
@@ -522,6 +547,7 @@ export function useSchemaForm(schema: FormSchema, initialModel: Record<string, u
     fieldLoadingMap: loadingOptions,
     fieldErrorMap,
     fieldDebugMap,
+    fieldPerfMap,
     touchedMap,
     dirtyMap,
     isDirty,

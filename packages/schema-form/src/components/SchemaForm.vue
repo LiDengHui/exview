@@ -30,6 +30,7 @@ const {
   resolveFieldDisabled,
   fieldErrorMap,
   fieldDebugMap,
+  fieldPerfMap,
   isDirty,
   isTouched,
   isValid,
@@ -125,6 +126,23 @@ const fieldStateMap = computed(() => {
   return map
 })
 
+
+const topSlowFields = computed(() => {
+  return Object.entries(fieldPerfMap)
+    .map(([field, perf]) => ({
+      field,
+      totalMs: perf.resolverMs + perf.optionsMs + perf.validatorMs,
+      resolverMs: perf.resolverMs,
+      optionsMs: perf.optionsMs,
+      validatorMs: perf.validatorMs,
+      resolverCount: perf.resolverCount,
+      optionsCount: perf.optionsCount,
+      validatorCount: perf.validatorCount
+    }))
+    .sort((a, b) => b.totalMs - a.totalMs)
+    .slice(0, 5)
+})
+
 const debugSnapshot = computed(() => ({
   model: getValues(),
   linkMap: renderedFields.value.map((field) => ({
@@ -136,7 +154,9 @@ const debugSnapshot = computed(() => ({
     trace: fieldDebugMap[field.name] || ''
   })),
   errors: fieldErrorMap,
-  loading: loadingOptions
+  loading: loadingOptions,
+  perf: fieldPerfMap,
+  topSlowFields: topSlowFields.value
 }))
 
 defineExpose({
@@ -152,7 +172,8 @@ defineExpose({
   isDirty,
   isTouched,
   fieldLoadingMap: loadingOptions,
-  fieldErrorMap
+  fieldErrorMap,
+  fieldPerfMap
 })
 
 async function submitForm() {

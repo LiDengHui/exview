@@ -15,6 +15,7 @@ const formRef = ref<{
   validateField: (field: string) => Promise<boolean>
   fieldLoadingMap: Record<string, boolean>
   fieldErrorMap: Record<string, string | null>
+  fieldPerfMap: Record<string, { resolverMs: number; optionsMs: number; validatorMs: number }>
 } | null>(null)
 
 const stateInfo = ref('dirty=false, touched=false')
@@ -22,7 +23,11 @@ const stateInfo = ref('dirty=false, touched=false')
 
 const fieldStatusText = computed(() => {
   if (!formRef.value) return 'loading={}, errors={}'
-  return `loading=${JSON.stringify(formRef.value.fieldLoadingMap)}, errors=${JSON.stringify(formRef.value.fieldErrorMap)}`
+  const slow = Object.entries(formRef.value.fieldPerfMap || {})
+    .map(([k, v]) => ({ k, total: (v?.resolverMs || 0) + (v?.optionsMs || 0) + (v?.validatorMs || 0) }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3)
+  return `loading=${JSON.stringify(formRef.value.fieldLoadingMap)}, errors=${JSON.stringify(formRef.value.fieldErrorMap)}, topSlow=${JSON.stringify(slow)}`
 })
 
 registerSchemaRule('strongRequired', { required: true, message: '该字段必须填写(运行时规则)', trigger: 'blur' }, 'runtime')
