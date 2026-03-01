@@ -62,3 +62,8 @@ pnpm -r test
 
 - `VITE_USE_MOCK=true`：使用本地 mock
 - `VITE_USE_MOCK=false`：走真实后端（需配置 `VITE_API_BASE_URL`）
+
+
+## Schema 规则分层
+
+- 规则注册与优先级说明：`docs/RULE_REGISTRY.md`
