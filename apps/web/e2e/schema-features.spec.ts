@@ -51,7 +51,8 @@ test('advanced page exposes field loading/error status text', async ({ page }) =
   const usernameInput = page.locator('input[placeholder*="输入 admin 会报占用"]')
   await usernameInput.fill('status-user')
 
-  await expect(status).toContainText('topSlow')
+  await expect(status).toContainText('errors=')
+  await expect(page.getByTestId('perf-top-fields')).toContainText('慢字段Top3')
 })
 
 test('runtime registered rule should validate username as required', async ({ page }) => {

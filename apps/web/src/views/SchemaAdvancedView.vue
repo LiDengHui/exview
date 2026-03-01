@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { SchemaForm, SchemaToolbar, registerSchemaRule } from '@exview/schema-form'
+import FieldPerfTop from '../components/perf/FieldPerfTop.vue'
 import type { FormSchema, ToolbarAction } from '@exview/schema-shared'
 
 const formRef = ref<{
@@ -23,11 +24,7 @@ const stateInfo = ref('dirty=false, touched=false')
 
 const fieldStatusText = computed(() => {
   if (!formRef.value) return 'loading={}, errors={}'
-  const slow = Object.entries(formRef.value.fieldPerfMap || {})
-    .map(([k, v]) => ({ k, total: (v?.resolverMs || 0) + (v?.optionsMs || 0) + (v?.validatorMs || 0) }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 3)
-  return `loading=${JSON.stringify(formRef.value.fieldLoadingMap)}, errors=${JSON.stringify(formRef.value.fieldErrorMap)}, topSlow=${JSON.stringify(slow)}`
+  return `loading=${JSON.stringify(formRef.value.fieldLoadingMap)}, errors=${JSON.stringify(formRef.value.fieldErrorMap)}`
 })
 
 registerSchemaRule('strongRequired', { required: true, message: '该字段必须填写(运行时规则)', trigger: 'blur' }, 'runtime')
@@ -160,6 +157,7 @@ async function onToolbarAction(item: ToolbarAction) {
           <el-button @click="checkUsername">校验用户名字段</el-button>
           <span>{{ stateInfo }}</span>
           <span data-testid="field-status">{{ fieldStatusText }}</span>
+          <FieldPerfTop :perf-map="formRef?.fieldPerfMap || {}" :top-n="3" title="慢字段Top3" />
         </el-space>
       </template>
     </SchemaForm>

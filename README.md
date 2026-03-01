@@ -67,3 +67,5 @@ pnpm -r test
 ## Schema 规则分层
 
 - 规则注册与优先级说明：`docs/RULE_REGISTRY.md`
+
+- 性能可观测说明：`docs/PERF_OBSERVABILITY.md`
