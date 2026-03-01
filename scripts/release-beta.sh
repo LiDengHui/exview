@@ -4,20 +4,54 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
-echo "==> 1/5 install deps"
-pnpm install
+DRY_RUN=false
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+fi
 
-echo "==> 2/5 run tests"
-pnpm --filter @exview/web test
+run_cmd() {
+  if $DRY_RUN; then
+    echo "[dry-run] $*"
+  else
+    eval "$*"
+  fi
+}
 
-echo "==> 3/5 build workspace"
-pnpm -r build
+echo "==> precheck 0/6 workspace clean"
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "[error] workspace has uncommitted changes. Please commit/stash first." >&2
+  git status --short
+  exit 1
+fi
 
-echo "==> 4/5 package preview"
+echo "==> precheck 1/6 install deps"
+run_cmd "pnpm install"
+
+echo "==> precheck 2/6 run tests"
+run_cmd "pnpm --filter @exview/web test"
+
+echo "==> precheck 3/6 build workspace"
+run_cmd "pnpm -r build"
+
+echo "==> precheck 4/6 package preview"
+run_cmd "mkdir -p tmp/release-pack"
 for pkg in packages/schema-shared packages/schema-form packages/schema-table; do
   echo "-- pack preview: $pkg"
-  (cd "$pkg" && pnpm pack --pack-destination ../../tmp/release-pack)
+  run_cmd "(cd '$pkg' && pnpm pack --pack-destination ../../tmp/release-pack)"
 done
 
-echo "==> 5/5 done"
+echo "==> precheck 5/6 npm auth check"
+if $DRY_RUN; then
+  echo "[dry-run] npm whoami"
+else
+  npm whoami >/dev/null
+  echo "npm auth ok"
+fi
+
+echo "==> precheck 6/6 changelog draft"
+run_cmd "node scripts/release-notes-draft.mjs"
+
 echo "Beta release precheck complete. Artifacts in tmp/release-pack"
+if $DRY_RUN; then
+  echo "Mode: dry-run (no command executed)"
+fi

@@ -10,6 +10,8 @@
     "lint": "pnpm -r lint",
     "release:beta:check": "bash scripts/release-beta.sh",
     "release:version": "node scripts/bump-version.mjs",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "release:beta:check:dry": "bash scripts/release-beta.sh --dry-run",
+    "release:notes:draft": "node scripts/release-notes-draft.mjs"
   }
 }
